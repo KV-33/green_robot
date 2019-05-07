@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<Workspace>
+    <Distribution name="kinetic"/>
+    <DefaultBuildSystem value="0"/>
+    <WatchDirectories>
+        <Directory>src</Directory>
+        <Directory>docs</Directory>
+        <Directory>include</Directory>
+        <Directory>scripts</Directory>
+        <Directory>launch</Directory>
+        <Directory>sketch_arduino</Directory>
+        <Directory>cfg</Directory>
+    </WatchDirectories>
+</Workspace>

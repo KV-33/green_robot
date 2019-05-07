@@ -3,21 +3,25 @@
 // includes
 #include <ros.h>
 #include <green_robot/Int32Stamped.h>
+#include <green_robot/SensorBoolStamped.h>
 
 // constants
-#define WHEEL_DIAMETER              0.150
+#define WHEEL_DIAMETER              0.145
 #define ANGULAR_RES                 0.314159265
 
-#define LEFT_ENCODER_PIN            8  // no use
-#define RIGHT_ENCODER_PIN           9  // no use
-#define LEFT_ENCODER_INTERRUPT_NB   2
-#define RIGHT_ENCODER_INTERRUPT_NB  3
+#define LEFT_ENCODER_PIN            11  // no use
+#define RIGHT_ENCODER_PIN           12  // no use
+#define LEFT_ENCODER_INTERRUPT_NB   0  // pin 2
+#define RIGHT_ENCODER_INTERRUPT_NB  1  // pin 3
 
 #define LEFT_MOTOR_PWM_PIN          5  // motor A blue motorshield
 #define LEFT_MOTOR_DIR_PIN          4
 #define RIGHT_MOTOR_PWM_PIN         6  // motor B blue motorshield
-#define RIGHT_MOTOR_DIR_PIN         7 
+#define RIGHT_MOTOR_DIR_PIN         7
 
+#define SENSOR_LEFT_PIN             8
+#define SENSOR_CENTER_PIN           9
+#define SENSOR_RIGHT_PIN            10
 
 // declaration of callbacks interrupts of encoders
 void callBackInterruptLeftEncoder();
@@ -35,6 +39,8 @@ green_robot::Int32Stamped countLeftEncoder;
 green_robot::Int32Stamped countRightEncoder;
 green_robot::Int32Stamped ctrlLeftMotor;
 green_robot::Int32Stamped ctrlRightMotor;
+green_robot::SensorBoolStamped sensors;
+
 int leftWheelRotationDir = 1;                 // 0: stop, +1: forward, -1: backward
 int rightWheelRotationDir = 1;                // 0: stop, +1: forward, -1: backward
 double timeOfLastChangeLeftEncoder = 0.0;
@@ -46,6 +52,7 @@ double timeOfLastPubEncoders = 0.0;
 // publishers
 ros::Publisher pubCountLeftEncoder("green_robot/countEncoder/left", &countLeftEncoder);
 ros::Publisher pubCountRightEncoder("green_robot/countEncoder/right", &countRightEncoder);
+ros::Publisher pubSensorsInfo("green_robot/sensors", &sensors);
 
 // suscribers
 ros::Subscriber<green_robot::Int32Stamped> subCmdLeftMotor("green_robot/cmdMotor/left", &callBackCmdLeftMotor );
@@ -53,9 +60,11 @@ ros::Subscriber<green_robot::Int32Stamped> subCmdRightMotor("green_robot/cmdMoto
 
 
 void setup() {
- nh.initNode(); 
+ nh.getHardware()->setBaud(115200);
+ nh.initNode();
  nh.advertise(pubCountLeftEncoder);
  nh.advertise(pubCountRightEncoder);
+ nh.advertise(pubSensorsInfo);
  nh.subscribe(subCmdLeftMotor);
  nh.subscribe(subCmdRightMotor);
  
@@ -66,6 +75,10 @@ void setup() {
  pinMode(LEFT_MOTOR_DIR_PIN, OUTPUT);
  pinMode(RIGHT_MOTOR_PWM_PIN, OUTPUT);
  pinMode(RIGHT_MOTOR_DIR_PIN, OUTPUT);
+
+ pinMode(SENSOR_LEFT_PIN, INPUT);
+ pinMode(SENSOR_CENTER_PIN, INPUT);
+ pinMode(SENSOR_RIGHT_PIN, INPUT);
 }
 
 
@@ -79,6 +92,8 @@ void loop(){
   countRightEncoder.header.stamp = countLeftEncoder.header.stamp;
   pubCountLeftEncoder.publish(&countLeftEncoder);
   pubCountRightEncoder.publish(&countRightEncoder);
+  
+  sensorsPubInfo();
    
   // Reset timer
   // if timer expired several times
@@ -88,6 +103,14 @@ void loop(){
  nh.spinOnce();   
 }
 
+void sensorsPubInfo(){
+  sensors.header.stamp = nh.now();
+  sensors.left = !digitalRead(SENSOR_LEFT_PIN);
+  sensors.center = !digitalRead(SENSOR_CENTER_PIN);
+  sensors.right = !digitalRead(SENSOR_RIGHT_PIN);
+  
+  pubSensorsInfo.publish(&sensors);
+  }
 
 // definition of callback functions
 void callBackCmdLeftMotor( const green_robot::Int32Stamped& msg){
