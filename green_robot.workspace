@@ -6,9 +6,9 @@
         <Directory>src</Directory>
         <Directory>docs</Directory>
         <Directory>include</Directory>
-        <Directory>scripts</Directory>
         <Directory>launch</Directory>
         <Directory>sketch_arduino</Directory>
         <Directory>cfg</Directory>
+        <Directory>design</Directory>
     </WatchDirectories>
 </Workspace>

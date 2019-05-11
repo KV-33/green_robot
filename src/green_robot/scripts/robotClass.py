@@ -10,7 +10,7 @@
 
 class Wheel:
     
-    def __init__(self, diameter):
+    def __init__(self, diameter, encoderResolution):
         self.diameter = diameter
         self.v = 0.0
         self.omega = 0.0
@@ -18,12 +18,12 @@ class Wheel:
         self.encoderCount = 0
         self.encoderCountPrev = 0
         self.lastTimeCountChange = 0.0
-        self.encoderResolution = 20 #nb of counts per revolution
+        self.encoderResolution = encoderResolution #6*120 #nb of counts per revolution (120 : reducteur)
         
 
 class Robot:
     
-    def __init__(self, interWheelDistance, wheelDiameter, x0=0.0, y0=0.0, theta0=0.0):
+    def __init__(self, interWheelDistance=0.15, wheelDiameter=0.07, x0=0.0, y0=0.0, theta0=0.0, encoderResolution=6*120):
     # zero inital speed and angular velocity assumed
         self.x0 = x0
         self.y0 = y0
@@ -36,9 +36,9 @@ class Robot:
         self.omega = 0.0
         self.omegaRef = 0.0
         self.interWheelDistance = interWheelDistance
-        self.leftWheel = Wheel(wheelDiameter)
-        self.rightWheel = Wheel(wheelDiameter)
+        self.leftWheel = Wheel(wheelDiameter, encoderResolution)
+        self.rightWheel = Wheel(wheelDiameter, encoderResolution)
 
 
 if __name__=='__main__':
-    green_robot = Robot(0.15, 0.05)
+    ardupiRobot = Robot(0.15, 0.05)

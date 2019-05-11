@@ -1,3 +1,0 @@
-<launch>
-    <node name="controlAllocation" pkg="green_robot" type="robotDriverPID.py" output="screen" />
-</launch>

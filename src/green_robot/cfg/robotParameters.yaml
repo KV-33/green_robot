@@ -1,0 +1,10 @@
+wheelDiameter: 0.07 # m
+interWheelDistance: 0.15 # m
+x0: 0.0 # m
+y0: 0.0 # m
+theta0: 0.0 # rad
+Vmax: 0.20 # m/s
+OmegaMax: 1.8.0 # rad/s
+
+encoderResolution: 720 #nb of counts per revolution (=6*120, with 120 : reduction factor)
+
