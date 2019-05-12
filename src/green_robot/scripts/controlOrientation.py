@@ -16,7 +16,7 @@ import tf
 import math
 from nav_msgs.msg import Odometry
 from dynamic_reconfigure.server import Server
-from green_robot_romi.cfg import ControlPositionCFGConfig
+from green_robot.cfg import ControlPositionCFGConfig
 from std_msgs.msg import Float32
 
 # node init

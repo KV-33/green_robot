@@ -1,3 +1,8 @@
 <launch>
+
+    <!--
     <include file="$(find green_robot)/launch/robot_driver.launch" />
+    -->
+
+    <include file="$(find green_robot)/launch/robot_control.launch" />
 </launch>

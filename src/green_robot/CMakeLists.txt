@@ -8,7 +8,12 @@ project(green_robot)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  std_msgs message_generation
+    dynamic_reconfigure
+    geometry_msgs
+    roscpp
+    rospy
+    std_msgs
+    message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -69,6 +74,7 @@ add_message_files(
  generate_messages(
    DEPENDENCIES
    std_msgs
+   geometry_msgs
  )
 
 ################################################
@@ -86,10 +92,11 @@ add_message_files(
 ##     and list every .cfg file to be processed
 
 ## Generate dynamic reconfigure parameters in the 'cfg' folder
-# generate_dynamic_reconfigure_options(
-#   cfg/DynReconf1.cfg
-#   cfg/DynReconf2.cfg
-# )
+generate_dynamic_reconfigure_options(
+  cfg/wheelSpeedFilter.cfg
+  cfg/wheelPID.cfg
+  cfg/controlPosition.cfg
+)
 
 ###################################
 ## catkin specific configuration ##
@@ -102,10 +109,11 @@ add_message_files(
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES green_robot
-#  CATKIN_DEPENDS message_runtime
+  LIBRARIES green_robot
+#  CATKIN_DEPENDS message_runtime geometry_msgs roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
+
 
 ###########
 ## Build ##

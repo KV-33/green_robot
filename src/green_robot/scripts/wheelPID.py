@@ -12,12 +12,12 @@ import rospy
 from std_msgs.msg import Float32
 from std_msgs.msg import Bool
 from geometry_msgs.msg import Twist, TwistStamped
-from green_robot_romi.msg import Int32Stamped # for receiving navdata feedback
+from green_robot.msg import Int32Stamped # for receiving navdata feedback
 import numpy as np
 import math
 import robotClass
 from dynamic_reconfigure.server import Server
-from green_robot_romi.cfg import WheelPIDCFGConfig
+from green_robot.cfg import WheelPIDCFGConfig
 
 
 # node init

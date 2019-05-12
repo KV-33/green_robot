@@ -11,11 +11,11 @@
 import rospy
 from std_msgs.msg import Float32
 from geometry_msgs.msg import Twist, TwistStamped
-from green_robot_romi.msg import Int32Stamped # for receiving navdata feedback
+from green_robot.msg import Int32Stamped # for receiving navdata feedback
 import numpy as np
 import robotClass
 from dynamic_reconfigure.server import Server
-from green_robot_romi.cfg import WheelSpeedFilterCFGConfig
+from green_robot.cfg import WheelSpeedFilterCFGConfig
 
 
 # node init

@@ -12,7 +12,7 @@ import rospy
 import tf
 from geometry_msgs.msg import Quaternion
 from nav_msgs.msg import Odometry
-from green_robot_romi.msg import Int32Stamped # for receiving navdata feedback
+from green_robot.msg import Int32Stamped # for receiving navdata feedback
 import numpy as np
 import robotClass
 
