@@ -127,14 +127,14 @@ void callBackCmdLeftMotor( const green_robot::Int32Stamped& msg){
 
   // write rotation speed direction
   if (u>=0) {
-    digitalWrite(LEFT_MOTOR_DIR_PIN, LOW);  // forward or stop
+    digitalWrite(LEFT_MOTOR_DIR_PIN, HIGH);  // forward or stop
     if (u==0){
       leftWheelRotationDir = 0;  // stop
     } else {
       leftWheelRotationDir = 1;  // forward
     }
   } else {
-    digitalWrite(LEFT_MOTOR_DIR_PIN, HIGH);  // backward
+    digitalWrite(LEFT_MOTOR_DIR_PIN, LOW);  // backward
     leftWheelRotationDir = -1;
   }
 }

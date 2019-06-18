@@ -5,8 +5,8 @@
 std_msgs::Float32 wheelSpeedRefLeftMsg;
 std_msgs::Float32 wheelSpeedRefRightMsg;
 
-float interWheelDistance_ = 0.3;  //Расстояние между колёсами
-float wheelDiameter_ = 0.1; //Диаметр колёс
+float interWheelDistance_ = 0.15;  //Расстояние между колёсами
+float wheelDiameter_ = 0.07; //Диаметр колёс
 
 float d = interWheelDistance_;
 

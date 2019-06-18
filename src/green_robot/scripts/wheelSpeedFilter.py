@@ -25,12 +25,12 @@ rospy.init_node('wheelSpeedFilterNode', anonymous=True)
 
 # static parameters
 # ------------------
-interWheelDistance_ = rospy.get_param('interWheelDistance', 0.15)
-wheelDiameter_ = rospy.get_param('wheelDiameter', 0.07)
+interWheelDistance_ = rospy.get_param('interWheelDistance', 0.254)
+wheelDiameter_ = rospy.get_param('wheelDiameter', 0.144)
 x0_ = rospy.get_param('x0', 0.)
 y0_ = rospy.get_param('y0', 0.)
 theta0_ = rospy.get_param('theta0', 0.)
-encoderResolution_ = rospy.get_param('encoderResolution', 6*120)
+encoderResolution_ = rospy.get_param('encoderResolution', 12*128)
 #rospy.loginfo("dist=%f" % interWheelDistance_)
 
 # robot object
@@ -135,8 +135,8 @@ def callBackRightEncoderCount(data):
 
 # subscribers
 # ------------
-rospy.Subscriber("green_robot/encoderCount/left", Int32Stamped, callBackLeftEncoderCount)
-rospy.Subscriber("green_robot/encoderCount/right", Int32Stamped, callBackRightEncoderCount)
+rospy.Subscriber("green_robot/countEncoder/left", Int32Stamped, callBackLeftEncoderCount)
+rospy.Subscriber("green_robot/countEncoder/right", Int32Stamped, callBackRightEncoderCount)
 
 
 # main node loop

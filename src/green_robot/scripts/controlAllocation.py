@@ -21,8 +21,8 @@ rospy.init_node('position_allocation', anonymous=True)
 
 # static parameters
 # ------------------
-interWheelDistance_ = rospy.get_param('interWheelDistance', 0.15)
-wheelDiameter_ = rospy.get_param('wheelDiameter', 0.07)
+interWheelDistance_ = rospy.get_param('interWheelDistance', 0.254)
+wheelDiameter_ = rospy.get_param('wheelDiameter', 0.144)
 
 # wheel radius
 rL = wheelDiameter_/2.0

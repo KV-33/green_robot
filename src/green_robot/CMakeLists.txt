@@ -128,7 +128,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/green_robot.cpp
+#   src/${PROJECT_NAME}/scripts/robotClass.py
 # )
 
 ## Add cmake target dependencies of the library

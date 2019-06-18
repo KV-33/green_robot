@@ -25,12 +25,12 @@ rospy.init_node('control_position', anonymous=True)
 
 # static parameters
 # ------------------
-interWheelDistance_ = rospy.get_param('interWheelDistance', 0.15)
-wheelDiameter_ = rospy.get_param('wheelDiameter', 0.07)
+interWheelDistance_ = rospy.get_param('interWheelDistance', 0.254)
+wheelDiameter_ = rospy.get_param('wheelDiameter', 0.144)
 x0_ = rospy.get_param('x0', 0.)
 y0_ = rospy.get_param('y0', 0.)
 theta0_ = rospy.get_param('theta0', 0.0)
-encoderResolution_ = rospy.get_param('encoderResolution', 720) #6*120
+encoderResolution_ = rospy.get_param('encoderResolution', 128*12) #6*120
 VMax = rospy.get_param('Vmax', 0.15)
 OmegaMax = rospy.get_param('OmegaMax', 2)
 #rospy.loginfo("dist=%f" % interWheelDistance_)

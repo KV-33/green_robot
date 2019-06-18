@@ -2,7 +2,19 @@
 #include "std_msgs/String.h"
 #include "geometry_msgs/Quaternion.h"
 #include "nav_msgs/Odometry.h"
-#include "green_robot.h"
+#include "green_robot/Int32Stamped.h"
+
+
+
+float interWheelDistance_ = 0.15;
+float wheelDiameter_ = 0.07;
+float x0_ = 0.;
+float y0_ = 0.;
+float theta0_ = 0.;
+float encoderResolution_ = 720.0;
+
+
+
 
 int main(int argc, char **argv)
 {

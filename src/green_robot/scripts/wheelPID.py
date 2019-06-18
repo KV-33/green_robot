@@ -26,12 +26,12 @@ rospy.init_node('wheel_PID', anonymous=True)
 
 # static parameters
 # ------------------
-interWheelDistance_ = rospy.get_param('interWheelDistance', 0.15)
-wheelDiameter_ = rospy.get_param('wheelDiameter', 0.07)
+interWheelDistance_ = rospy.get_param('interWheelDistance', 0.254)
+wheelDiameter_ = rospy.get_param('wheelDiameter', 0.144)
 x0_ = rospy.get_param('x0', 0.)
 y0_ = rospy.get_param('y0', 0.)
 theta0_ = rospy.get_param('theta0', 0.)
-encoderResolution_ = rospy.get_param('encoderResolution', 6*120)
+encoderResolution_ = rospy.get_param('encoderResolution', 12*128.)
 #rospy.loginfo("dist=%f" % interWheelDistance_)
 
 # robot object
