@@ -1,0 +1,13 @@
+<launch>
+
+   <node name="green_robot" pkg="rosserial_python" respawn="true" type="serial_node.py">
+  <param name="port" value="/dev/ttyUSB0"/>
+  <param name="baud" value="115200"/>
+   </node>
+   <rosparam command="load" file="$(find green_robot)/cfg/robotParameters.yaml" />
+    <!--
+    <include file="$(find green_robot)/launch/robot_driver.launch" />
+    -->
+    <include file="$(find control_allocation)/launch/control_allocation.launch" />
+    <include file="$(find green_robot)/launch/robot_control.launch" />
+</launch>

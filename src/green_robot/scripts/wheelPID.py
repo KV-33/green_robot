@@ -50,7 +50,7 @@ pubLeftMotorCmd = rospy.Publisher('green_robot/cmdMotor/left', Int32Stamped, que
 pubRightMotorCmd = rospy.Publisher('green_robot/cmdMotor/right', Int32Stamped, queue_size=10)
 
 # frequency of PID control of wheel angular velocities
-fe = 20.0
+fe = 10.0
 Te = 1/fe
 motorCmdPubRate = rospy.Rate(fe)
 
@@ -77,9 +77,9 @@ def callbackDynParam(config, level):
 srv = Server(WheelPIDCFGConfig, callbackDynParam)
 
 #init dynamic parameters
-kp = rospy.get_param('/wheelPID/kp', 1.85)
+kp = rospy.get_param('/wheelPID/kp', 167.0)
 ki = rospy.get_param('/wheelPID/ki', 2.25)
-kd = rospy.get_param('/wheelPID/kd', 0.55)
+kd = rospy.get_param('/wheelPID/kd', 2.0)
 
 
 
@@ -175,8 +175,8 @@ if __name__ == '__main__':
              uRight = uRightPrec + kp*epsilonRight + ki*integralRight + kd*epsilonDRight
          
          # saturations
-         uLeft = np.clip(uLeft, -180, 180)
-         uRight = np.clip(uRight, -180, 180)
+         uLeft = np.clip(uLeft, -255, 255)
+         uRight = np.clip(uRight, -255, 255)
 
          # deadzone
          if (math.fabs(uLeft)<=10):

@@ -41,11 +41,11 @@ robot = robotClass.Robot(interWheelDistance=interWheelDistance_, wheelDiameter=w
 # publishers
 # -----------
 # wheel speed estimated from wheel encoders (linear and angular)
-pubLeftWheelSpeed = rospy.Publisher('wheelSpeed/left', TwistStamped, queue_size=10)
-pubRightWheelSpeed = rospy.Publisher('wheelSpeed/right', TwistStamped, queue_size=10)
+pubLeftWheelSpeed = rospy.Publisher('wheelSpeed/left', TwistStamped, queue_size=30)
+pubRightWheelSpeed = rospy.Publisher('wheelSpeed/right', TwistStamped, queue_size=30)
 
 # frequency of filter execution
-fe = 20.0
+fe = 10.0
 Te = 1/fe
 wheelSpeedPubRate = rospy.Rate(fe)
 

@@ -2,13 +2,17 @@
     <rosparam command="load" file="$(find green_robot)/cfg/robotParameters.yaml" />
 
     <node name="wheelSpeedFilter" pkg="green_robot" type="wheelSpeedFilter.py" output="screen"/>
+    <!--
     <node name="wheelPID" pkg="green_robot" type="wheelPID.py" output="screen" />
-    <node name="odometry" pkg="green_robot" type="odometry.py" output="screen" />
+    -->
+<node name="odometry" pkg="green_robot" type="odometry.py" output="screen" />
 
 <!--
     <node name="controlPosition" pkg="scripts" type="controlPosition.py" output="screen" />
     <node name="controlOrientation" pkg="scripts" type="controlOrientation.py" output="screen" />
 -->
 
-    <node name="controlAllocation" pkg="green_robot" type="controlAllocation.py" output="screen" />
+<!--
+<node name="controlAllocation" pkg="green_robot" type="controlAllocation.py" output="screen" />
+-->
 </launch>
