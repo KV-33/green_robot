@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>wheel_pid</name>
+  <name>speed_conversion</name>
   <version>0.1.0</version>
-  <description>The wheel_pid package</description>
+  <description>The speed_conversion package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/wheel_pid</url> -->
+  <!-- <url type="website">http://wiki.ros.org/odometry_diff</url> -->
 
 
   <!-- Author tags are optional, multiple are allowed, one per tag -->
@@ -49,9 +49,9 @@
   <!-- Use doc_depend for packages you need only for building documentation: -->
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>roscpp rospy std_msgs message_generation</build_depend>
-  <build_export_depend>roscpp rospy std_msgs message_generation</build_export_depend>
-  <exec_depend>roscpp rospy std_msgs message_generation</exec_depend>
+  <build_depend>roscpp rospy std_msgs geometry_msgs message_generation</build_depend>
+  <build_export_depend>roscpp rospy std_msgs geometry_msgs message_generation</build_export_depend>
+  <exec_depend>roscpp rospy std_msgs geometry_msgs message_runtime</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

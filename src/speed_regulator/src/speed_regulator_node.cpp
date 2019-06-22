@@ -1,8 +1,8 @@
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
-#include <sensor_msgs/JointState.h>
-#include <std_msgs/Bool.h>
-#include "green_robot/Int32Stamped.h"
+#include <std_msgs/Int32.h>
+
+
 #define Kp                        167.0    // пропорциональный коэффициент для ПИД регулятора (41.7)
 #define Ki                        0.1      // интегральный коэффициент для ПИД регулятора
 #define Kd                        0.4      // дифференциальный коэффициент для ПИД регулятора
@@ -15,16 +15,12 @@ float cmd_linear;
 float cmd_angular;
 
 
-
-
 float linear = 0;           //значение для драйвера моторов
 float angular = 0;          //значение для руля моторов
 
 float e_prev = 0;           //последнее значение разницы скорости движения
 float I_prev = 0;           //последнее значение интегральной составляющей ПИД регулятора
 float linear_speed;
-#define NUM_JOINTS                2
-
 
 
 int linear2driverMotor()
@@ -77,12 +73,48 @@ int linear2driverMotor()
   return motor_value;
 }
 
+void leftCmd_velCallback(const geometry_msgs::Twist& msg_cmd_vel)
+{
+  //float x = msg_cmd_vel.linear.x;
+  //ROS_INFO("LINEAR: [%f], ANGULAR: [%f]", msg_cmd_vel.linear.x, msg_cmd_vel.angular.z);
+}
+
+void rightCmd_velCallback(const geometry_msgs::Twist& msg_cmd_vel)
+{
+  //float x = msg_cmd_vel.linear.x;
+  //ROS_INFO("LINEAR: [%f], ANGULAR: [%f]", msg_cmd_vel.linear.x, msg_cmd_vel.angular.z);
+}
+
+
+void leftWheelSpeedCallback(const geometry_msgs::Twist& msg_cmd_vel)
+{
+  //float x = msg_cmd_vel.linear.x;
+  //ROS_INFO("LINEAR: [%f], ANGULAR: [%f]", msg_cmd_vel.linear.x, msg_cmd_vel.angular.z);
+}
+
+void rightWheelSpeedCallback(const geometry_msgs::Twist& msg_cmd_vel)
+{
+  //float x = msg_cmd_vel.linear.x;
+  //ROS_INFO("LINEAR: [%f], ANGULAR: [%f]", msg_cmd_vel.linear.x, msg_cmd_vel.angular.z);
+}
+
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "wheel_pid_node");
+    ros::init(argc, argv, "speed_regulator_node");
     ros::NodeHandle nh;
-    ros::Subscriber sub = nh.subscribe("rawspeed/left", 30, linear2driverMotor);
-    ros::Publisher pub = nh.advertise<green_robot::Int32Stamped>("green_robot/cmdMotor/left", 30);
+
+    //Sensors speed
+    ros::Subscriber left_wheel_speed_sub = nh.subscribe("green_robot/sensors/wheel_speed/left", 50, leftWheelSpeedCallback);
+    ros::Subscriber right_wheel_speed_sub = nh.subscribe("green_robot/sensors/wheel_speed/right", 50, rightWheelSpeedCallback);
+
+    //Speed cmd_vel
+    ros::Subscriber left_cmd_vel_sub = nh.subscribe("green_robot/cmd_vel/left", 50, leftCmd_velCallback);
+    ros::Subscriber right_cmd_vel_sub = nh.subscribe("green_robot/cmd_vel/left", 50, rightCmd_velCallback);
+
+    //Signal on motors
+    ros::Publisher left_motor_pub = nh.advertise<std_msgs::Int32>("green_robot/motor/left", 50);
+    ros::Publisher right_motor_pub = nh.advertise<std_msgs::Int32>("green_robot/motor/right", 50);
+
     ROS_INFO("It's not an Eastern Egg!");
 }
