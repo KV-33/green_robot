@@ -1,3 +1,6 @@
 <launch>
-<node name="control_allocation_node" pkg="control_allocation" type="control_allocation_node" output="screen"/>
+    <node name="control_allocation_node" pkg="control_allocation" type="control_allocation_node" output="screen">
+        <param name="wheel_diameter" value="0.144"/>
+        <param name="wheel_interval" value="0.254"/>
+    </node>
 </launch>
