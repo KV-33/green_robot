@@ -4,6 +4,7 @@
 #include <ros.h>
 #include <green_robot/Int32Stamped.h>
 #include <green_robot/SensorBoolStamped.h>
+#include <std_msgs/Int32.h>
 
 // constants
 #define WHEEL_DIAMETER              0.145
@@ -23,13 +24,16 @@
 #define SENSOR_CENTER_PIN           9
 #define SENSOR_RIGHT_PIN            10
 
+#define LEFT           0
+#define RIGHT          1
+
 // declaration of callbacks interrupts of encoders
 void callBackInterruptLeftEncoder();
 void callBackInterruptRightEncoder();
 
 // declaration of callbacks for cmd msg reception
-void callBackCmdLeftMotor( const green_robot::Int32Stamped& msg); 
-void callBackCmdRightMotor( const green_robot::Int32Stamped& msg);
+void callBackCmdLeftMotor( const std_msgs::Int32& msg);
+void callBackCmdRightMotor( const std_msgs::Int32& msg);
 
 // node
 ros::NodeHandle nh;
@@ -37,8 +41,6 @@ ros::NodeHandle nh;
 // global variables
 green_robot::Int32Stamped countLeftEncoder;
 green_robot::Int32Stamped countRightEncoder;
-green_robot::Int32Stamped ctrlLeftMotor;
-green_robot::Int32Stamped ctrlRightMotor;
 green_robot::SensorBoolStamped sensors;
 
 int leftWheelRotationDir = 1;                 // 0: stop, +1: forward, -1: backward
@@ -50,13 +52,13 @@ double publicationPeriodEncoders = 0.10;//0.05;
 double timeOfLastPubEncoders = 0.0;
 
 // publishers
-ros::Publisher pubCountLeftEncoder("green_robot/countEncoder/left", &countLeftEncoder);
-ros::Publisher pubCountRightEncoder("green_robot/countEncoder/right", &countRightEncoder);
-ros::Publisher pubSensorsInfo("green_robot/sensors", &sensors);
+ros::Publisher pubCountLeftEncoder("green_robot/sensors/encoders/left", &countLeftEncoder);
+ros::Publisher pubCountRightEncoder("green_robot/sensors/encoders/right", &countRightEncoder);
+ros::Publisher pubSensorsInfo("green_robot/sensors/bumper", &sensors);
 
 // suscribers
-ros::Subscriber<green_robot::Int32Stamped> subCmdLeftMotor("green_robot/cmdMotor/left", &callBackCmdLeftMotor );
-ros::Subscriber<green_robot::Int32Stamped> subCmdRightMotor("green_robot/cmdMotor/right", &callBackCmdRightMotor );
+ros::Subscriber<std_msgs::Int32> subCmdLeftMotor("green_robot/cmd_vel/left", &callBackCmdLeftMotor );
+ros::Subscriber<std_msgs::Int32> subCmdRightMotor("green_robot/cmd_vel/right", &callBackCmdRightMotor );
 
 
 void setup() {
@@ -113,56 +115,35 @@ void sensorsPubInfo(){
   }
 
 // definition of callback functions
-void callBackCmdLeftMotor( const green_robot::Int32Stamped& msg){
-  int u = msg.data;
- 
-  // saturation
-  if (u>255)
-    u = 255;
-  if (u<-255)
-    u = -255;
-	
-  // write rotation speed module
-  analogWrite(LEFT_MOTOR_PWM_PIN, abs(u));
-
-  // write rotation speed direction
-  if (u>=0) {
-    digitalWrite(LEFT_MOTOR_DIR_PIN, HIGH);  // forward or stop
-    if (u==0){
-      leftWheelRotationDir = 0;  // stop
-    } else {
-      leftWheelRotationDir = 1;  // forward
-    }
-  } else {
-    digitalWrite(LEFT_MOTOR_DIR_PIN, LOW);  // backward
-    leftWheelRotationDir = -1;
-  }
+void callBackCmdLeftMotor( const std_msgs::Int32& msg){
+   leftWheelRotationDir = cmd_velMotors(msg.data, LEFT);
 }
 
-void callBackCmdRightMotor( const green_robot::Int32Stamped& msg){
+void callBackCmdRightMotor( const std_msgs::Int32& msg){
+   rightWheelRotationDir = cmd_velMotors(msg.data, RIGHT);
+}
 
-  int u = msg.data;
-  
+int cmd_velMotors(int u, int direction){
   // saturation
   if (u>255)
     u = 255;
   if (u<-255)
     u = -255;
-	
+
   // write rotation speed module
-  analogWrite(RIGHT_MOTOR_PWM_PIN, abs(u));
+  analogWrite(direction==LEFT ? LEFT_MOTOR_PWM_PIN : RIGHT_MOTOR_PWM_PIN, abs(u));
 
   // write rotation speed direction
   if (u>=0) {
-    digitalWrite(RIGHT_MOTOR_DIR_PIN, LOW);  // forward or stop
+    digitalWrite(direction==LEFT ? LEFT_MOTOR_DIR_PIN : RIGHT_MOTOR_DIR_PIN, direction==LEFT ? HIGH : LOW);  // forward or stop
     if (u==0){
-      rightWheelRotationDir = 0;  // stop
+      return 0;  // stop
     } else {
-      rightWheelRotationDir = 1;  // forward
+      return 1;  // forward
     }
   } else {
-    digitalWrite(RIGHT_MOTOR_DIR_PIN, HIGH);  // backward
-    rightWheelRotationDir = -1;
+    digitalWrite(direction==LEFT ? LEFT_MOTOR_DIR_PIN : RIGHT_MOTOR_DIR_PIN, direction==LEFT ? LOW : HIGH);  // backward
+    return -1;
   }
 }
 
