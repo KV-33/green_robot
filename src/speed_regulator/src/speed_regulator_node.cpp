@@ -3,118 +3,154 @@
 #include <std_msgs/Int32.h>
 
 
+#define MOTOR_MAX_VALUE           255
+#define MOTOR_START_VALUE         45
+
+/*#define K_SPEED                   0.63     // коэффициент неадекватной скорости*/
+
 #define Kp                        167.0    // пропорциональный коэффициент для ПИД регулятора (41.7)
 #define Ki                        0.1      // интегральный коэффициент для ПИД регулятора
 #define Kd                        0.4      // дифференциальный коэффициент для ПИД регулятора
-/*#define K_SPEED                   0.63     // коэффициент неадекватной скорости*/
-#define WHEEL_DIAMETER            0.144    // диаметр колеса в метрах
-#define WHEEL_IMPULSE_COUNT       12*128    // количество импульсов на оборот колеса
 
-float pid_constants[3];
-float cmd_linear;
-float cmd_angular;
+class PID{
+private:
+    std::vector<double> pid_constants;
 
+    int motor_max_value;
+    int motor_start_value;
 
-float linear = 0;           //значение для драйвера моторов
-float angular = 0;          //значение для руля моторов
+    double e_prev = 0;           //последнее значение разницы скорости движения
+    double I_prev = 0;           //последнее значение интегральной составляющей ПИД регулятора
 
-float e_prev = 0;           //последнее значение разницы скорости движения
-float I_prev = 0;           //последнее значение интегральной составляющей ПИД регулятора
-float linear_speed;
+    double linear_speed_actual;
+    double linear_speed_cmd_vel;
 
+    ros::Subscriber wheel_speed_sub;
+    ros::Subscriber cmd_vel_sub;
+    ros::Publisher motor_pub;
+    ros::NodeHandle nh;
 
-int linear2driverMotor()
-{
-  if(linear_speed == 0){
-    I_prev = 0.0;
-    e_prev = 0.0;
-    return 0;
-  }
+    void cmd_velCallback(const geometry_msgs::Twist& msg)
+    {
+        linear_speed_cmd_vel = msg.linear.x;
+    }
 
-  //Расчет средней скорости движения между публикациями
-  float speed_actual;
-  float e = speed_actual * WHEEL_DIAMETER/2 - linear_speed;       //разница в скорости средней от последней публикации в m/s и желаемая m/s
+    void wheelSpeedCallback(const geometry_msgs::Twist& msg)
+    {
+        linear_speed_actual = msg.linear.x;
+    }
 
-  //ПИД регулятор для рассчета значения для драйвера моторов
-  float P = pid_constants[0] * e;
-  float I = I_prev + pid_constants[1] * e;
-  float D = pid_constants[2] * (e - e_prev);
-  float motor_value = round(P + I + D);
+    int linear2motor()
+    {
+      if(linear_speed_cmd_vel == 0){
+        I_prev = 0.0;
+        e_prev = 0.0;
+        return 0;
+      }
 
-  if((motor_value < 0 && linear_speed < 0) || (motor_value > 0 && linear_speed > 0))
-    motor_value = 0;
+      //Расчет средней скорости движения между публикациями
+      float e = linear_speed_actual - linear_speed_cmd_vel;       //разница в скорости от последней публикации в m/s и желаемая m/s
 
+      //ПИД регулятор для рассчета значения для драйвера моторов
+      float P = pid_constants.at(0) * e;
+      float I = I_prev + pid_constants.at(1) * e;
+      float D = pid_constants.at(2) * (e - e_prev);
+      float motor_value = round(P + I + D);
 
-  //Для отладки
-  //state_eff[1] = e;
-  //state_eff[2] = motor_value;
+      if((motor_value < 0 && linear_speed_cmd_vel < 0) || (motor_value > 0 && linear_speed_cmd_vel > 0))
+        motor_value = 0;
 
-  I_prev = I;                     //фиксируем интегральную составляющую
-  e_prev = e;                     //фиксируем последнее значение разницы в скорости
+      I_prev = I;                     //фиксируем интегральную составляющую
+      e_prev = e;                     //фиксируем последнее значение разницы в скорости
 
-  int motor_val_min = 45;
+      if(motor_value < 0 && motor_value >= -motor_start_value){
+        motor_value = motor_start_value;
+      }
+      if(motor_value > 0 && motor_value <= motor_start_value){
+        motor_value = -motor_start_value;
+      }
 
-  if(motor_value < 0 && motor_value >= -motor_val_min){
-    motor_value = -motor_val_min;
-  }
-  if(motor_value > 0 && motor_value <= motor_val_min){
-    motor_value = motor_val_min;
-  }
+      //Убираем переполнение ШИМ
+      if (motor_value>motor_max_value){
+        return -motor_max_value;
+      }
 
-  //Убираем переполнение ШИМ
-  if (motor_value>255){
-    return 255;
-  }
+      if (motor_value<-motor_max_value){
+        return motor_max_value;
+      }
 
-  if (motor_value<-255){
-    return -255;
-  }
+      return motor_value;
+    }
 
-  return motor_value;
-}
+public:
+    PID(std::string topic_wheel_speed, std::string topic_cmd_vel, std::string topic_motor, ros::NodeHandle &n, int motor_max_value, int motor_start_value){
+        nh = n;
+        this->motor_max_value = motor_max_value;
+        this->motor_start_value = motor_start_value;
+        wheel_speed_sub = nh.subscribe(topic_wheel_speed, 50, &PID::wheelSpeedCallback, this);
+        cmd_vel_sub = nh.subscribe(topic_cmd_vel, 50, &PID::cmd_velCallback, this);
+        motor_pub = nh.advertise<std_msgs::Int32>(topic_motor, 50);
+    }
 
-void leftCmd_velCallback(const geometry_msgs::Twist& msg_cmd_vel)
-{
-  //float x = msg_cmd_vel.linear.x;
-  //ROS_INFO("LINEAR: [%f], ANGULAR: [%f]", msg_cmd_vel.linear.x, msg_cmd_vel.angular.z);
-}
+    void update_pid_params(ros::NodeHandle &n, std::string pid_params)
+    {
+        if (!n.getParam(pid_params, pid_constants)){
+           //default values
+           pid_constants.at(0) = Kp;
+           pid_constants.at(1) = Ki;
+           pid_constants.at(2) = Kd;
+        }
+    }
 
-void rightCmd_velCallback(const geometry_msgs::Twist& msg_cmd_vel)
-{
-  //float x = msg_cmd_vel.linear.x;
-  //ROS_INFO("LINEAR: [%f], ANGULAR: [%f]", msg_cmd_vel.linear.x, msg_cmd_vel.angular.z);
-}
-
-
-void leftWheelSpeedCallback(const geometry_msgs::Twist& msg_cmd_vel)
-{
-  //float x = msg_cmd_vel.linear.x;
-  //ROS_INFO("LINEAR: [%f], ANGULAR: [%f]", msg_cmd_vel.linear.x, msg_cmd_vel.angular.z);
-}
-
-void rightWheelSpeedCallback(const geometry_msgs::Twist& msg_cmd_vel)
-{
-  //float x = msg_cmd_vel.linear.x;
-  //ROS_INFO("LINEAR: [%f], ANGULAR: [%f]", msg_cmd_vel.linear.x, msg_cmd_vel.angular.z);
-}
-
+    void publish(){
+        std_msgs::Int32 msg;
+        msg.data = -linear2motor();
+        motor_pub.publish(msg);
+    }
+};
 
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "speed_regulator_node");
     ros::NodeHandle nh;
+    ros::NodeHandle priv_nh("~");
 
-    //Sensors speed
-    ros::Subscriber left_wheel_speed_sub = nh.subscribe("green_robot/sensors/wheel_speed/left", 50, leftWheelSpeedCallback);
-    ros::Subscriber right_wheel_speed_sub = nh.subscribe("green_robot/sensors/wheel_speed/right", 50, rightWheelSpeedCallback);
+    std::string topic_wheel_speed_left;
+    std::string topic_cmd_vel_left;
+    std::string topic_motor_left;
+    priv_nh.param<std::string>("topic_wheel_speed_left", topic_wheel_speed_left, "sensors/wheel_speed/left");
+    priv_nh.param<std::string>("topic_cmd_vel_left", topic_cmd_vel_left, "cmd_vel/left");
+    priv_nh.param<std::string>("topic_motor_left", topic_motor_left, "motor/left");
 
-    //Speed cmd_vel
-    ros::Subscriber left_cmd_vel_sub = nh.subscribe("green_robot/cmd_vel/left", 50, leftCmd_velCallback);
-    ros::Subscriber right_cmd_vel_sub = nh.subscribe("green_robot/cmd_vel/left", 50, rightCmd_velCallback);
+    std::string topic_wheel_speed_right;
+    std::string topic_cmd_vel_right;
+    std::string topic_motor_right;
+    priv_nh.param<std::string>("topic_wheel_speed_right", topic_wheel_speed_right, "sensors/wheel_speed/right");
+    priv_nh.param<std::string>("topic_cmd_vel_right", topic_cmd_vel_right, "cmd_vel/right");
+    priv_nh.param<std::string>("topic_motor_right", topic_motor_right, "motor/left");
 
-    //Signal on motors
-    ros::Publisher left_motor_pub = nh.advertise<std_msgs::Int32>("green_robot/motor/left", 50);
-    ros::Publisher right_motor_pub = nh.advertise<std_msgs::Int32>("green_robot/motor/right", 50);
+    std::string pid_params;
+    priv_nh.param<std::string>("pid_params", pid_params, "/pid");
 
-    ROS_INFO("It's not an Eastern Egg!");
+    int motor_max_value;
+    priv_nh.param("motor_max_value", motor_max_value, MOTOR_MAX_VALUE);
+    int motor_start_value;
+    priv_nh.param("motor_start_value", motor_start_value, MOTOR_START_VALUE);
+
+    PID left_wheel(topic_wheel_speed_left, topic_cmd_vel_left, topic_motor_left, nh, motor_max_value, motor_start_value);
+    PID right_wheel(topic_wheel_speed_right, topic_cmd_vel_right, topic_motor_right, nh, motor_max_value, motor_start_value);
+
+    while(ros::ok()){
+        ros::spinOnce();
+        ros::Rate r(10);
+
+        left_wheel.update_pid_params(priv_nh, pid_params);
+        right_wheel.update_pid_params(priv_nh, pid_params);
+
+        left_wheel.publish();
+        right_wheel.publish();
+
+        r.sleep();
+    }
+    return(0);
 }
