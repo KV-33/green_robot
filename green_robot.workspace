@@ -10,5 +10,6 @@
         <Directory>sketch_arduino</Directory>
         <Directory>cfg</Directory>
         <Directory>design</Directory>
+        <Directory>setup</Directory>
     </WatchDirectories>
 </Workspace>

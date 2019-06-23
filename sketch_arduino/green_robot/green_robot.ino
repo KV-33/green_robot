@@ -2,14 +2,11 @@
 
 // includes
 #include <ros.h>
-#include <green_robot/Int32Stamped.h>
+#include <speed_conversion/Int32Stamped.h>
 #include <green_robot/SensorBoolStamped.h>
 #include <std_msgs/Int32.h>
 
 // constants
-#define WHEEL_DIAMETER              0.145
-#define ANGULAR_RES                 0.314159265
-
 #define LEFT_ENCODER_PIN            11  // no use
 #define RIGHT_ENCODER_PIN           12  // no use
 #define LEFT_ENCODER_INTERRUPT_NB   0  // pin 2
@@ -82,7 +79,6 @@ void setup() {
  pinMode(SENSOR_CENTER_PIN, INPUT);
  pinMode(SENSOR_RIGHT_PIN, INPUT);
 }
-
 
 void loop(){
  

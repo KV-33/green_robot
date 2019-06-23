@@ -1,7 +1,7 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include "geometry_msgs/Twist.h"
-#include "green_robot/Int32Stamped.h"
+#include "speed_conversion/Int32Stamped.h"
 
 
 #define WHEEL_DIAMETER            0.144    // диаметр колеса в метрах
@@ -42,7 +42,6 @@ int main(int argc, char **argv)
     ros::Rate loop_rate(50);
     while (ros::ok())
     {
-
         left_wheel_msg.linear.x = 0.0;
         right_wheel_msg.linear.x = 0.0;
 
