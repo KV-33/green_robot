@@ -54,8 +54,8 @@ ros::Publisher pubCountRightEncoder("green_robot/sensors/encoders/right", &count
 ros::Publisher pubSensorsInfo("green_robot/sensors/bumper", &sensors);
 
 // suscribers
-ros::Subscriber<std_msgs::Int32> subCmdLeftMotor("green_robot/cmd_vel/left", &callBackCmdLeftMotor );
-ros::Subscriber<std_msgs::Int32> subCmdRightMotor("green_robot/cmd_vel/right", &callBackCmdRightMotor );
+ros::Subscriber<std_msgs::Int32> subCmdLeftMotor("green_robot/motor/left", &callBackCmdLeftMotor );
+ros::Subscriber<std_msgs::Int32> subCmdRightMotor("green_robot/motor/right", &callBackCmdRightMotor );
 
 
 void setup() {
