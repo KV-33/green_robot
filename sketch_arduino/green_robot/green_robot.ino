@@ -36,8 +36,8 @@ void callBackCmdRightMotor( const std_msgs::Int32& msg);
 ros::NodeHandle nh;
 
 // global variables
-green_robot::Int32Stamped countLeftEncoder;
-green_robot::Int32Stamped countRightEncoder;
+speed_conversion::Int32Stamped countLeftEncoder;
+speed_conversion::Int32Stamped countRightEncoder;
 green_robot::SensorBoolStamped sensors;
 
 int leftWheelRotationDir = 1;                 // 0: stop, +1: forward, -1: backward
@@ -90,6 +90,9 @@ void loop(){
   countRightEncoder.header.stamp = countLeftEncoder.header.stamp;
   pubCountLeftEncoder.publish(&countLeftEncoder);
   pubCountRightEncoder.publish(&countRightEncoder);
+  countLeftEncoder.data = 0.0;
+  countRightEncoder.data = 0.0;
+
   
   sensorsPubInfo();
    

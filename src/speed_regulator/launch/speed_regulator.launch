@@ -1,14 +1,14 @@
 <launch>
     <rosparam param="/pid">[167.0, 0.0, 0.0]</rosparam>
 
-    <node name="speed_regulator_node" pkg="speed_regulator" type="speed_regulator_node" output="screen">
-        <param name="topic_wheel_speed_left" value="green_robot/sensors/wheel_speed/left"/>
-        <param name="topic_cmd_vel_left" value="green_robot/cmd_vel/left"/>
-        <param name="topic_motor_left" value="green_robot/motor/left"/>
+    <node name="speed_regulator_node" pkg="speed_regulator" type="speed_regulator_node" ns="green_robot" output="screen">
+        <param name="topic_wheel_speed_right" value="sensors/wheel_speed/right"/>
+        <param name="topic_cmd_vel_right" value="cmd_vel/right"/>
+        <param name="topic_motor_right" value="motor/right"/>
 
-        <param name="topic_wheel_speed_right" value="green_robot/sensors/wheel_speed/right"/>
-        <param name="topic_cmd_vel_right" value="green_robot/cmd_vel/right"/>
-        <param name="topic_motor_right" value="green_robot/motor/right"/>
+        <param name="topic_wheel_speed_left" value="sensors/wheel_speed/left"/>
+        <param name="topic_cmd_vel_left" value="cmd_vel/left"/>
+        <param name="topic_motor_left" value="motor/left"/>
 
         <param name="pid_params" value="/pid"/>
 
