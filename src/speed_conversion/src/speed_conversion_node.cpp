@@ -10,20 +10,17 @@ double wheel_diameter;
 double encoder_resolution;
 int encoders_count;
 ros::Time msg_time_last;
-ros::Time msg_time;
+double time_interval;
 
 void encodersCallback(const speed_conversion::Int32Stamped& msg)
 {
     encoders_count = msg.data;
-    msg_time = msg.header.stamp;
+    time_interval = msg.header.stamp.toSec() - msg_time_last.toSec();
+    msg_time_last = msg.header.stamp;
 }
 
-double impulse2meters(double x) {
-    return ((x / (encoder_resolution / 360.0)) * M_PI / 180.0) * (wheel_diameter / 2);
-}
-
-double inSeconds(double x, long t) {
-  return x / (t / 1000.0); //преобразуем в рад/с
+double impulse2metersInSeconds(double x) {
+    return ((x / encoder_resolution) * M_PI * wheel_diameter)/time_interval;
 }
 
 int main(int argc, char **argv)
@@ -42,15 +39,19 @@ int main(int argc, char **argv)
 
     geometry_msgs::Twist wheel_msg;
 
-    ros::Subscriber encoder_sub = nh.subscribe(topic_wheel_encoder, 100, encodersCallback);
-    ros::Publisher speed_pub = nh.advertise<geometry_msgs::Twist>(topic_wheel_speed, 100);
+    ros::Subscriber encoder_sub = nh.subscribe(topic_wheel_encoder, 50, encodersCallback);
+    ros::Publisher speed_pub = nh.advertise<geometry_msgs::Twist>(topic_wheel_speed, 50);
 
     ros::Rate loop_rate(50);
     while (ros::ok())
     {
-        double t = msg_time.toSec()-msg_time_last.toSec();
-        msg_time_last = msg_time;
-        wheel_msg.linear.x = impulse2meters(encoders_count)/t;
+        if(encoders_count > 0 && time_interval > 0.0){
+            wheel_msg.linear.x = impulse2metersInSeconds(encoders_count);
+        }
+        else
+        {
+            wheel_msg.linear.x = 0.0;
+        }
         speed_pub.publish(wheel_msg);
         ros::spinOnce();
         loop_rate.sleep();
