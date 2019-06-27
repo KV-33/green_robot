@@ -13,6 +13,6 @@
         <param name="pid_params" value="/pid"/>
 
         <param name="motor_max_value" value="255.0"/>
-        <param name="motor_start_value" value="45.0"/>
+        <param name="motor_start_value" value="20.0"/>
     </node>
 </launch>

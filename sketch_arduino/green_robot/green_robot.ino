@@ -49,13 +49,13 @@ double publicationPeriodEncoders = 0.10;//0.05;
 double timeOfLastPubEncoders = 0.0;
 
 // publishers
-ros::Publisher pubCountLeftEncoder("green_robot/sensors/encoders/left", &countLeftEncoder);
-ros::Publisher pubCountRightEncoder("green_robot/sensors/encoders/right", &countRightEncoder);
-ros::Publisher pubSensorsInfo("green_robot/sensors/bumper", &sensors);
+ros::Publisher pubCountLeftEncoder("sensors/encoders/left", &countLeftEncoder);
+ros::Publisher pubCountRightEncoder("sensors/encoders/right", &countRightEncoder);
+ros::Publisher pubSensorsInfo("sensors/bumper", &sensors);
 
 // suscribers
-ros::Subscriber<std_msgs::Int32> subCmdLeftMotor("green_robot/motor/left", &callBackCmdLeftMotor );
-ros::Subscriber<std_msgs::Int32> subCmdRightMotor("green_robot/motor/right", &callBackCmdRightMotor );
+ros::Subscriber<std_msgs::Int32> subCmdLeftMotor("motor/left", &callBackCmdLeftMotor );
+ros::Subscriber<std_msgs::Int32> subCmdRightMotor("motor/right", &callBackCmdRightMotor );
 
 
 void setup() {

@@ -19,10 +19,10 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "control_allocation_node");
   ros::NodeHandle nh;
 
-  ros::Subscriber cmd_vel_sub = nh.subscribe("green_robot/cmd_vel", 50, cmd_velCallback);
+  ros::Subscriber cmd_vel_sub = nh.subscribe("cmd_vel", 50, cmd_velCallback);
 
-  ros::Publisher pub_motor_left = nh.advertise<geometry_msgs::Twist>("green_robot/cmd_vel/left", 50);
-  ros::Publisher pub_motor_right = nh.advertise<geometry_msgs::Twist>("green_robot/cmd_vel/right", 50);
+  ros::Publisher pub_motor_left = nh.advertise<geometry_msgs::Twist>("cmd_vel/left", 50);
+  ros::Publisher pub_motor_right = nh.advertise<geometry_msgs::Twist>("cmd_vel/right", 50);
 
   ros::Rate loop_rate(10);
   while (ros::ok())

@@ -50,7 +50,7 @@ int main(int argc, char **argv)
         }
         else
         {
-            wheel_msg.linear.x = 0.0;
+            wheel_msg.linear.x = impulse2metersInSeconds(encoders_count);//wheel_msg.linear.x = 0.0;
         }
         speed_pub.publish(wheel_msg);
         ros::spinOnce();

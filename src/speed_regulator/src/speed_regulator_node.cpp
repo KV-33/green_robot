@@ -4,7 +4,7 @@
 
 
 #define MOTOR_MAX_VALUE           255
-#define MOTOR_START_VALUE         45
+#define MOTOR_START_VALUE         20
 
 /*#define K_SPEED                   0.63     // коэффициент неадекватной скорости*/
 
