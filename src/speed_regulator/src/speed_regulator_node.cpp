@@ -8,9 +8,9 @@
 
 /*#define K_SPEED                   0.63     // коэффициент неадекватной скорости*/
 
-#define Kp                        167.0    // пропорциональный коэффициент для ПИД регулятора (41.7)
-#define Ki                        0.1      // интегральный коэффициент для ПИД регулятора
-#define Kd                        0.4      // дифференциальный коэффициент для ПИД регулятора
+#define Kp                        5.0    // пропорциональный коэффициент для ПИД регулятора (41.7)
+#define Ki                        5.0      // интегральный коэффициент для ПИД регулятора
+#define Kd                        5.0      // дифференциальный коэффициент для ПИД регулятора
 
 class PID{
 private:
@@ -32,7 +32,7 @@ private:
 
     void cmd_velCallback(const geometry_msgs::Twist& msg)
     {
-        linear_speed_cmd_vel = msg.linear.x;
+        linear_speed_cmd_vel = -msg.linear.x;
     }
 
     void wheelSpeedCallback(const geometry_msgs::Twist& msg)
@@ -64,19 +64,19 @@ private:
       e_prev = e;                     //фиксируем последнее значение разницы в скорости
 
       if(motor_value < 0 && motor_value >= -motor_start_value){
-        motor_value = motor_start_value;
+        motor_value = -motor_start_value;
       }
       if(motor_value > 0 && motor_value <= motor_start_value){
-        motor_value = -motor_start_value;
+        motor_value = motor_start_value;
       }
 
       //Убираем переполнение ШИМ
       if (motor_value>motor_max_value){
-        return -motor_max_value;
+        return motor_max_value;
       }
 
       if (motor_value<-motor_max_value){
-        return motor_max_value;
+        return -motor_max_value;
       }
 
       return motor_value;
@@ -104,7 +104,7 @@ public:
 
     void publish(){
         std_msgs::Int32 msg;
-        msg.data = -linear2motor();
+        msg.data = linear2motor();
         motor_pub.publish(msg);
     }
 };
