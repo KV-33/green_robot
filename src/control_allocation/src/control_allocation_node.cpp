@@ -1,16 +1,22 @@
 #include "ros/ros.h"
 #include <geometry_msgs/Twist.h>
 
+#define WHEEL_DIAMETER            0.144    // диаметр колеса в метрах
+
+double wheel_diameter;
+
 geometry_msgs::Twist wheelSpeedRefLeftMsg;
 geometry_msgs::Twist wheelSpeedRefRightMsg;
 
 void cmd_velCallback(const geometry_msgs::Twist& msg_cmd_vel)
 {
-  double V = msg_cmd_vel.linear.x;
-  double Omega = msg_cmd_vel.angular.z;
+  double V = msg_cmd_vel.linear.x;        //линейная скорость
+  double Omega = msg_cmd_vel.angular.z;   //угловая скорость
+  double d = wheel_diameter;              //диаметр колеса
+  double r = wheel_diameter/2;            //радиус колеса
 
-  wheelSpeedRefLeftMsg.linear.x = (V - Omega);
-  wheelSpeedRefRightMsg.linear.x = (V + Omega);
+  wheelSpeedRefLeftMsg.linear.x = (V - d * Omega)/r;
+  wheelSpeedRefRightMsg.linear.x = (V + d * Omega)/r;
   //ROS_INFO("LINEAR: [%f], ANGULAR: [%f]", msg_cmd_vel.linear.x, msg_cmd_vel.angular.z);
 }
 
@@ -18,6 +24,9 @@ int main(int argc, char **argv)
 {
   ros::init(argc, argv, "control_allocation_node");
   ros::NodeHandle nh;
+  ros::NodeHandle priv_nh("~");
+
+  priv_nh.param("wheel_diameter", wheel_diameter, WHEEL_DIAMETER);
 
   ros::Subscriber cmd_vel_sub = nh.subscribe("cmd_vel", 50, cmd_velCallback);
 
