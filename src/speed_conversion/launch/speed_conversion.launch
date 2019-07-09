@@ -5,16 +5,16 @@
         <param name="topic_wheel_encoder" value="sensors/encoders/left"/>
         <param name="topic_wheel_speed" value="sensors/wheel_speed/left"/>
 
-        <param name="wheel_diameter" value="0.144"/>
-        <param name="encoder_resolution" value="1526.0"/>
+        <param name="wheel_diameter" value="0.07"/>
+        <param name="encoder_resolution" value="40.0"/>
     </node>
 
     <node name="speed_conversion_node_right" pkg="speed_conversion" type="speed_conversion_node" ns="green_robot" output="screen">
         <param name="topic_wheel_encoder" value="sensors/encoders/right"/>
         <param name="topic_wheel_speed" value="sensors/wheel_speed/right"/>
 
-        <param name="wheel_diameter" value="0.144"/>
-        <param name="encoder_resolution" value="1536.0"/>
+        <param name="wheel_diameter" value="0.07"/>
+        <param name="encoder_resolution" value="40.0"/>
     </node>
 
 
