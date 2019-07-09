@@ -1,5 +1,5 @@
 <launch>
-    <rosparam param="/pid">[150.0, 0.0, 0.0]</rosparam>
+    <rosparam param="/pid">[80.0, 0.0, 0.0]</rosparam>
 
     <node name="speed_regulator_node" pkg="speed_regulator" type="speed_regulator_node" ns="green_robot" output="screen">
         <param name="topic_wheel_speed_right" value="sensors/wheel_speed/right"/>
