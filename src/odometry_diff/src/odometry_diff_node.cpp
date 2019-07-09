@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <tf/transform_broadcaster.h>
 #include <nav_msgs/Odometry.h>
-#include <odometry_diff/Int32Stamped.h>
+#include "sensor_msgs/JointState.h"
 
 #define ENCODER_RESOLUTION        40.0   // количество импульсов на оборот колеса   //12*128
 #define WHEEL_DIAMETER            0.07    // диаметр колеса в метрах
@@ -39,24 +39,35 @@ double impulse2meters(double x) {
     return ((x / encoder_resolution) * M_PI * wheel_diameter);
 }
 
-void encoderLeftCallback(const odometry_diff::Int32Stamped& msg)
+void encodersCallback(const sensor_msgs::JointState& msg)
 {
     double interval_sec = msg.header.stamp.toSec() - prev_time.toSec();
-    left_dist = impulse2meters(msg.data);
+    left_dist = impulse2meters(msg.position[0]);
+    right_dist = impulse2meters(msg.position[1]);
     left_speed = left_dist / interval_sec;
+    right_speed = left_dist / interval_sec;
     prev_time = msg.header.stamp;
 }
-
-void encoderRightCallback(const odometry_diff::Int32Stamped& msg)
-{
-    double interval_sec = msg.header.stamp.toSec() - prev_time.toSec();
-    right_dist = impulse2meters(msg.data);
-    right_speed = right_dist / interval_sec;
-    prev_time = msg.header.stamp;
-}
-
 
 /*
+void math(){
+    linear_speed = (left_speed + right_speed) / 2;
+    angular = left_speed - right_speed / WHEEL_BASE;
+
+    vth = linear_speed * tan(rudder_angle) / aw;
+
+    double dt = (current_time - last_time).toSec();
+    double delta_x = (vx * cos(th) - vy * sin(th)) * dt;
+    double delta_y = (vx * sin(th) + vy * cos(th)) * dt;
+
+    ros::Duration dt = msg.header.stamp - prev_time;
+    double x_dot = linear_speed * cos(th);
+    double y_dot = linear_speed * sin(th);
+    x += x_dot * dt.toSec();
+    y += y_dot * dt.toSec();
+    th += vth * dt.toSec();
+}
+
 if(msg.name.size() == 3 && msg.name[0].compare("left_wheel") == 0 && msg.name[1].compare("right_wheel") == 0 && msg.name[2].compare("rudder") == 0) {
     if(prev_time_init) {
         linear_speed = ((msg.velocity[0] + msg.velocity[1]) / 2) * (d / 2);
@@ -79,8 +90,7 @@ if(msg.name.size() == 3 && msg.name[0].compare("left_wheel") == 0 && msg.name[1]
 int main(int argc, char** argv){
   ros::init(argc, argv, "odometry_node");
   ros::NodeHandle n;
-  ros::Subscriber sub_left_wheel = n.subscribe("sensors/encoders/left", 10, encoderLeftCallback);
-  ros::Subscriber sub_right_wheel = n.subscribe("sensors/encoders/right", 10, encoderRightCallback);
+  ros::Subscriber sub_wheel = n.subscribe("sensors/encoders", 10, encodersCallback);
   ros::Publisher odom_pub = n.advertise<nav_msgs::Odometry>("odom", 10);
 
   boost::shared_ptr<tf::TransformBroadcaster> tf_pub;
@@ -128,8 +138,6 @@ int main(int argc, char** argv){
     tf.transform.rotation = odom->pose.pose.orientation;
     if (ros::ok()) {
         tf_pub->sendTransform(tf);
-    }
-    if (ros::ok()) {
         odom_pub.publish(odom);
     }
 

@@ -1,6 +1,6 @@
 // includes
 #include <ros.h>
-#include <speed_conversion/Int32Stamped.h>
+#include <sensor_msgs/JointState.h>
 #include <std_msgs/Int32.h>
 
 // constants
@@ -28,9 +28,12 @@ void callBackCmdRightMotor( const std_msgs::Int32& msg);
 // node
 ros::NodeHandle nh;
 
-// global variables
-speed_conversion::Int32Stamped countLeftEncoder;
-speed_conversion::Int32Stamped countRightEncoder;
+#define NUM_JOINTS                2
+
+char *state_names[NUM_JOINTS] = {"left_wheel", "right_wheel"};
+float state_pos[NUM_JOINTS] = {0, 0};
+float state_vel[NUM_JOINTS] = {0, 0};
+float state_eff[NUM_JOINTS] = {0, 0};
 
 int leftWheelRotationDir = 1;                 // 0: stop, +1: forward, -1: backward
 int rightWheelRotationDir = 1;                // 0: stop, +1: forward, -1: backward
@@ -40,9 +43,10 @@ double timeOfLastChangeRightEncoder = 0.0;
 double publicationPeriodEncoders = 0.10;//0.05;
 double timeOfLastPubEncoders = 0.0;
 
-// publishers
-ros::Publisher pubCountLeftEncoder("sensors/encoders/left", &countLeftEncoder);
-ros::Publisher pubCountRightEncoder("sensors/encoders/right", &countRightEncoder);
+
+sensor_msgs::JointState state_msg;
+
+ros::Publisher state_pub("sensors/encoders", &state_msg);                    //инициализация издателя топика "joint_states"
 
 // suscribers
 ros::Subscriber<std_msgs::Int32> subCmdLeftMotor("motor/left", &callBackCmdLeftMotor );
@@ -52,8 +56,6 @@ ros::Subscriber<std_msgs::Int32> subCmdRightMotor("motor/right", &callBackCmdRig
 void setup() {
  nh.getHardware()->setBaud(115200);
  nh.initNode();
- nh.advertise(pubCountLeftEncoder);
- nh.advertise(pubCountRightEncoder);
  nh.subscribe(subCmdLeftMotor);
  nh.subscribe(subCmdRightMotor);
  
@@ -64,6 +66,18 @@ void setup() {
  pinMode(LEFT_MOTOR_DIR_PIN, OUTPUT);
  pinMode(RIGHT_MOTOR_PWM_PIN, OUTPUT);
  pinMode(RIGHT_MOTOR_DIR_PIN, OUTPUT);
+
+ 
+  nh.advertise(state_pub);
+  state_msg.header.frame_id =  "/driver_states";
+  state_msg.name_length = NUM_JOINTS;
+  state_msg.velocity_length = NUM_JOINTS;
+  state_msg.position_length = NUM_JOINTS;
+  state_msg.effort_length = NUM_JOINTS;
+  state_msg.name = state_names;
+  state_msg.position = state_pos;
+  state_msg.velocity = state_vel;
+  state_msg.effort = state_eff;
 }
 
 void loop(){
@@ -72,12 +86,8 @@ void loop(){
  if (  ( (millis()/1000.0) - timeOfLastPubEncoders ) > publicationPeriodEncoders) {
 
   // publish messages
-  countLeftEncoder.header.stamp = nh.now();
-  countRightEncoder.header.stamp = countLeftEncoder.header.stamp;
-  pubCountLeftEncoder.publish(&countLeftEncoder);
-  pubCountRightEncoder.publish(&countRightEncoder);
-  countLeftEncoder.data = 0.0;
-  countRightEncoder.data = 0.0;
+  state_msg.header.stamp = nh.now();
+  state_pub.publish(&state_msg);
 
   // Reset timer
   // if timer expired several times
@@ -126,7 +136,7 @@ int cmd_velMotors(int u, int direction){
 void callBackInterruptLeftEncoder(){
   double t = millis()/1000.0;
   if (t>timeOfLastChangeLeftEncoder){
-    countLeftEncoder.data = countLeftEncoder.data + 1*leftWheelRotationDir;
+    state_pos[0] = state_pos[0] + 1*leftWheelRotationDir;
     timeOfLastChangeLeftEncoder = t;
   } 
 }
@@ -134,7 +144,7 @@ void callBackInterruptLeftEncoder(){
 void callBackInterruptRightEncoder(){
   double t = millis()/1000.0;
   if (t>timeOfLastChangeRightEncoder){
-    countRightEncoder.data = countRightEncoder.data + 1*rightWheelRotationDir;
+    state_pos[1] = state_pos[1] + 1*rightWheelRotationDir;
     timeOfLastChangeRightEncoder = t;
   } 
 }

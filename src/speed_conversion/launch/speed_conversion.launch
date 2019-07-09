@@ -2,21 +2,12 @@
     <arg name="debug" default="0"/>   <!-- 0-off, 1-on -->
 
     <node name="speed_conversion_node_left" pkg="speed_conversion" type="speed_conversion_node" ns="green_robot" output="screen">
-        <param name="topic_wheel_encoder" value="sensors/encoders/left"/>
-        <param name="topic_wheel_speed" value="sensors/wheel_speed/left"/>
+        <param name="topic_wheel_encoder" value="sensors/encoders"/>
+        <param name="topic_wheel_speed" value="sensors/wheel_speed"/>
 
         <param name="wheel_diameter" value="0.07"/>
         <param name="encoder_resolution" value="40.0"/>
     </node>
-
-    <node name="speed_conversion_node_right" pkg="speed_conversion" type="speed_conversion_node" ns="green_robot" output="screen">
-        <param name="topic_wheel_encoder" value="sensors/encoders/right"/>
-        <param name="topic_wheel_speed" value="sensors/wheel_speed/right"/>
-
-        <param name="wheel_diameter" value="0.07"/>
-        <param name="encoder_resolution" value="40.0"/>
-    </node>
-
 
     <group if="$(eval arg('debug') == 1)">
         <!--Запуск узла эмуляции робота-->

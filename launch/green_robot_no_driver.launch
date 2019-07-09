@@ -1,0 +1,5 @@
+<launch>
+    <include file="$(find control_allocation)/launch/control_allocation.launch" />
+    <include file="$(find speed_regulator)/launch/speed_regulator.launch" />
+    <include file="$(find speed_conversion)/launch/speed_conversion.launch" />
+</launch>
