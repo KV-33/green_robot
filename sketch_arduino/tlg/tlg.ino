@@ -52,7 +52,7 @@ double timeOfLastChangeRightEncoder = 0.0;
 double publicationPeriodEncoders = 0.10;//0.05;
 double timeOfLastPubEncoders = 0.0;
 
-double publicationPeriodSensorsLine = 0.50;//0.05;
+double publicationPeriodSensorsLine = 0.02;//0.05;
 double timeOfLastPubSensorsLine = 0.0;
 
 
