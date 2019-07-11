@@ -3,7 +3,7 @@
 	    <param name="topic_cmd_vel" value="cmd_vel"/>
 		<param name="topic_sensors_line" value="sensors/line"/>
 		
-        <param name="linear_speed" value="0.5"/>
-        <param name="Kp" value="1.0"/>
+        <param name="linear_speed" value="0.15"/>
+        <param name="Kp" value="0.003"/>
     </node>
 </launch>

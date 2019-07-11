@@ -85,7 +85,7 @@ void setup() {
 
  
   nh.advertise(state_pub);
-  state_msg.header.frame_id =  "/driver_states";
+  state_msg.header.frame_id =  "/encoders";
   state_msg.name_length = NUM_JOINTS;
   state_msg.velocity_length = NUM_JOINTS;
   state_msg.position_length = NUM_JOINTS;

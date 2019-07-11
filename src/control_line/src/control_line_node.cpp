@@ -11,13 +11,11 @@ double Kp = 1.0;
 void sensorsLineCallback(const sensor_msgs::JointState& msg)
 {
     if(msg.name.size() == 2 && msg.name[0].compare("left_sensor_line") == 0 && msg.name[1].compare("right_sensor_line") == 0) {
-		cmd_vel.angular.z = Kp * msg.position[0] - msg.position[1];
-		
-		cmd_vel_pub.publish(cmd_vel);
+        cmd_vel.angular.z = Kp * (msg.position[1] - msg.position[0]);
+    } else {
+        cmd_vel.angular.z = 0;
     }
 }
-
-double angularLineControl(double )
 
 int main(int argc, char **argv)
 {
@@ -41,6 +39,7 @@ int main(int argc, char **argv)
   while (ros::ok())
   {
     ros::spinOnce();
+    cmd_vel_pub.publish(cmd_vel);
     loop_rate.sleep();
   }
   return 0;

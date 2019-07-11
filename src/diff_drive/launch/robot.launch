@@ -1,6 +1,6 @@
 <launch>
 
-  <arg name="ticks_per_meter" value="400" />
+  <arg name="ticks_per_meter" value="180" />
   <arg name="wheel_separation" value="0.13" />
 
   <node name="encoder_publisher" pkg="diff_drive" type="diff_drive_encoder" output="screen">
@@ -31,13 +31,13 @@
     <param name="~kP" value="0.5" />
     <param name="~kA" value="1.0" />
     <param name="~kB" value="-0.8" />
-    <param name="~max_linear_speed" value="0.5" />
-    <param name="~min_linear_speed" value="0.3" />
-    <param name="~max_angular_speed" value="1.7" />
-    <param name="~min_angular_speed" value="0.1" />
-    <param name="~linear_tolerance" value="0.1" />
-    <param name="~angular_tolerance" value="0.1" />
-    <param name="~forwardMovementOnly" value="true" />
+    <param name="~max_linear_speed" value="0.7" />
+    <param name="~min_linear_speed" value="0.4" />
+    <param name="~max_angular_speed" value="1.0" />
+    <param name="~min_angular_speed" value="0.0" />
+    <param name="~linear_tolerance" value="0.15" />
+    <param name="~angular_tolerance" value="0.3" />
+    <param name="~forwardMovementOnly" value="false" />
     <remap from="cmd_vel" to="/green_robot/cmd_vel" />
   </node>
 

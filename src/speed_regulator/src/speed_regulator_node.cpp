@@ -8,19 +8,21 @@
 
 /*#define K_SPEED                   0.63     // коэффициент неадекватной скорости*/
 
-#define Kp                        5.0    // пропорциональный коэффициент для ПИД регулятора (41.7)
-#define Ki                        5.0      // интегральный коэффициент для ПИД регулятора
-#define Kd                        5.0      // дифференциальный коэффициент для ПИД регулятора
+#define def_Kp                        80.0    // пропорциональный коэффициент для ПИД регулятора (41.7)
+#define def_Ki                        0.0      // интегральный коэффициент для ПИД регулятора
+#define def_Kd                        0.0      // дифференциальный коэффициент для ПИД регулятора
 
 class PID{
 private:
-    std::vector<double> pid_constants;
+    float kP;
+    float kI;
+    float kD;
 
     int motor_max_value;
     int motor_start_value;
 
-    double e_prev = 0;           //последнее значение разницы скорости движения
-    double I_prev = 0;           //последнее значение интегральной составляющей ПИД регулятора
+    double e_prev;           //последнее значение разницы скорости движения
+    double I_prev;           //последнее значение интегральной составляющей ПИД регулятора
 
     double linear_speed_actual;
     double linear_speed_cmd_vel;
@@ -42,6 +44,7 @@ private:
 
     int linear2motor()
     {
+
       if(linear_speed_cmd_vel == 0){
         I_prev = 0.0;
         e_prev = 0.0;
@@ -52,9 +55,9 @@ private:
       float e = linear_speed_actual - linear_speed_cmd_vel;       //разница в скорости от последней публикации в m/s и желаемая m/s
 
       //ПИД регулятор для рассчета значения для драйвера моторов
-      float P = pid_constants.at(0) * e;
-      float I = I_prev + pid_constants.at(1) * e;
-      float D = pid_constants.at(2) * (e - e_prev);
+      float P = kP * e;
+      float I = I_prev + kI * e;
+      float D = kD * (e - e_prev);
       float motor_value = round(P + I + D);
 
       if((motor_value < 0 && linear_speed_cmd_vel < 0) || (motor_value > 0 && linear_speed_cmd_vel > 0))
@@ -90,16 +93,23 @@ public:
         wheel_speed_sub = nh.subscribe(topic_wheel_speed, 50, &PID::wheelSpeedCallback, this);
         cmd_vel_sub = nh.subscribe(topic_cmd_vel, 50, &PID::cmd_velCallback, this);
         motor_pub = nh.advertise<std_msgs::Int32>(topic_motor, 50);
+    e_prev = 0.0;
+    I_prev = 0.0;
+        kP = def_Kp;
+        kI = def_Ki;
+        kD = def_Kd;
     }
 
     void update_pid_params(ros::NodeHandle &n, std::string pid_params)
     {
-        if (!n.getParam(pid_params, pid_constants)){
-           //default values
-           pid_constants.at(0) = Kp;
-           pid_constants.at(1) = Ki;
-           pid_constants.at(2) = Kd;
-        }
+        std::vector<double> pid_constants;
+        if (n.getParam(pid_params, pid_constants)){
+       if(pid_constants.size() == 3) {
+         kP = pid_constants[0];
+             kI = pid_constants[1];
+             kD = pid_constants[2];
+       }
+    }
     }
 
     void publish(){
@@ -137,12 +147,16 @@ int main(int argc, char **argv)
     int motor_start_value;
     priv_nh.param("motor_start_value", motor_start_value, MOTOR_START_VALUE);
 
+
     PID left_wheel(topic_wheel_speed_left, topic_cmd_vel_left, topic_motor_left, nh, motor_max_value, motor_start_value);
     PID right_wheel(topic_wheel_speed_right, topic_cmd_vel_right, topic_motor_right, nh, motor_max_value, motor_start_value);
+//    left_wheel.update_pid_params(priv_nh, pid_params);
+//    right_wheel.update_pid_params(priv_nh, pid_params);
+
+    ros::Rate r(10);
 
     while(ros::ok()){
         ros::spinOnce();
-        ros::Rate r(10);
 
         left_wheel.update_pid_params(priv_nh, pid_params);
         right_wheel.update_pid_params(priv_nh, pid_params);

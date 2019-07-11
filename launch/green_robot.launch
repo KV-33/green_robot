@@ -1,4 +1,5 @@
 <launch>
+    <include file="$(find diff_drive)/launch/robot.launch" />
     <include file="$(find green_robot)/launch/driver.launch" />
     <include file="$(find control_allocation)/launch/control_allocation.launch" />
     <include file="$(find speed_regulator)/launch/speed_regulator.launch" />
