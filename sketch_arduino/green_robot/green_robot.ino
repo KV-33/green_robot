@@ -1,173 +1,229 @@
-// Sketch for green_robot
-
-// includes
+// подключение библиотек
 #include <ros.h>
 #include <sensor_msgs/JointState.h>
-#include <green_robot/SensorBoolStamped.h>
 #include <std_msgs/Int32.h>
 
-// constants
-#define LEFT_ENCODER_PIN            11  // no use
-#define RIGHT_ENCODER_PIN           12  // no use
-#define LEFT_ENCODER_INTERRUPT_NB   0  // pin 2
-#define RIGHT_ENCODER_INTERRUPT_NB  1  // pin 3
+// константы для конфигурации
+#define LEFT_ENCODER_PIN                11      // пин направления движения левого энкодера (не используется)
+#define RIGHT_ENCODER_PIN               12      // пин направления движения правого энкодера (не используется)
+#define LEFT_ENCODER_INTERRUPT_NB       0       // номер прерывания левого энкодера (pin 2)
+#define RIGHT_ENCODER_INTERRUPT_NB      1       // номер прерывания правогоы энкодера (pin 3)
 
-#define LEFT_MOTOR_PWM_PIN          5  // motor A blue motorshield
-#define LEFT_MOTOR_DIR_PIN          4
-#define RIGHT_MOTOR_PWM_PIN         6  // motor B blue motorshield
-#define RIGHT_MOTOR_DIR_PIN         7
+#define LEFT_MOTOR_PWM_PIN              5       // пин левого мотора (ШИМ-сигнал)
+#define LEFT_MOTOR_DIR_PIN              4       // пин левого мотора (направления движения)
+#define RIGHT_MOTOR_PWM_PIN             6       // пин правого мотора (ШИМ-сигнал)
+#define RIGHT_MOTOR_DIR_PIN             7       // пин правого мотора (направления движения)
 
-#define SENSOR_LEFT_PIN             8
-#define SENSOR_CENTER_PIN           9
-#define SENSOR_RIGHT_PIN            10
+#define SENSOR_LEFT_PIN                 8       // пин датчика касания левый
+#define SENSOR_CENTER_PIN               9       // пин датчика касания центральный
+#define SENSOR_RIGHT_PIN                10      // пин датчика касания правый
 
+#define COUNT_MOTORS                    2       // количество моторов, энкодеров
+#define COUNT_TOUCH_SENSORS             3       // количество датчиков касания
+
+#define TIME_PUB_INFO_ENCODERS_MS       20      // интервал для публикации сообщений с энкодеров в топик
+#define TIME_PUB_INFO_TOUCH_SENSORS_MS  20      // интервал для публикации сообщений с датчиков касания в топик
+#define TIME_NO_MSG_MS                  2000    // время ожидания восстановления связи при отсутствии сообщений с управляющим воздействием (далее стоп моторы)
+
+#define MOTOR_VALUE_MAX                 255     // максимальное значение подаваемое на драйвер
+#define MOTOR_VALUE_MIN                 80      // минимальное значение подаваемое на драйвер
+
+
+// стороны робота
 #define LEFT                        0
 #define RIGHT                       1
 
-#define NUM_JOINTS                  2
+///////////////////////////////////////////////////////////////////////////////////////
 
-
-// declaration of callbacks interrupts of encoders
+// объявление обработчиков прерываний с энкодеров
 void callBackInterruptLeftEncoder();
 void callBackInterruptRightEncoder();
 
-// declaration of callbacks for cmd msg reception
-void callBackCmdLeftMotor( const std_msgs::Int32& msg);
-void callBackCmdRightMotor( const std_msgs::Int32& msg);
+// объявление обработчиков сообщений из топиков предназначеных для управления моторами
+void callBackCmdMotorLeft( const std_msgs::Int32& msg);
+void callBackCmdMotorRight( const std_msgs::Int32& msg);
 
-// node
+// объявление узла
 ros::NodeHandle nh;
 
-// global variables
-char *state_names[NUM_JOINTS] = {"left_wheel", "right_wheel"};
-float state_pos[NUM_JOINTS] = {0, 0};
-float state_vel[NUM_JOINTS] = {0, 0};
-float state_eff[NUM_JOINTS] = {0, 0};
+// объявление массивов для хранения и публикации данных с энкодеров в топик
+char *encoders_names[COUNT_MOTORS] = {"wheel_left", "wheel_right"};
+float encoders_pos[COUNT_MOTORS] = {0, 0};
+float encoders_vel[COUNT_MOTORS] = {0, 0};
+float encoders_eff[COUNT_MOTORS] = {0, 0};
 
-green_robot::SensorBoolStamped sensors;
+// объявление массивов для хранения и публикации данных с датчиков касания в топик
+char *sensors_touch_names[COUNT_TOUCH_SENSORS] = {"sensor_left", "sensor_center", "sensor_right"};
+float sensors_touch_pos[COUNT_TOUCH_SENSORS] = {0, 0, 0};
+float sensors_touch_vel[COUNT_TOUCH_SENSORS] = {0, 0, 0};
+float sensors_touch_eff[COUNT_TOUCH_SENSORS] = {0, 0, 0};
 
-int leftWheelRotationDir = 1;                 // 0: stop, +1: forward, -1: backward
-int rightWheelRotationDir = 1;                // 0: stop, +1: forward, -1: backward
-double timeOfLastChangeLeftEncoder = 0.0;
-double timeOfLastChangeRightEncoder = 0.0;
+int cmd_motors[COUNT_MOTORS] = {0.0, 0.0};                             // управляющие воздействия на моторы
 
-double publicationPeriodEncoders = 0.02;//0.05;
-double timeOfLastPubEncoders = 0.0;
+// объявление переменных для учета последних действий
+unsigned long time_last_pub_encoders = 0;                              // последнее время публикации значений энкодеров в топик
+unsigned long time_last_pub_sensors_touch = 0;                         // последнее время публикации значений датчиков касания в топик
+unsigned long time_last_msgs_cmd_vel = 0;                              // последнее время получения сообщения с управляющим воздействием
 
-// publishers
-sensor_msgs::JointState state_msg;
-ros::Publisher state_pub("sensors/encoders", &state_msg);                    //инициализация издателя топика "joint_states"
-ros::Publisher pubSensorsInfo("sensors/bumper", &sensors);
+// обявление сообщений для энкодеров и датчиков касания
+sensor_msgs::JointState encoders_msg;
+sensor_msgs::JointState sensors_touch_msg;
 
-// suscribers
-ros::Subscriber<std_msgs::Int32> subCmdLeftMotor("motor/left", &callBackCmdLeftMotor );
-ros::Subscriber<std_msgs::Int32> subCmdRightMotor("motor/right", &callBackCmdRightMotor );
+// объявление издателей топиков с данными от энкодеров и датчиков касания
+ros::Publisher pub_encoders("sensors/encoders", &encoders_msg);
+ros::Publisher pub_sensors_touch("sensors/touch", &sensors_touch_msg);
 
+// объявление подписчиков на топики управления моторами
+ros::Subscriber<std_msgs::Int32> sub_cmd_motor_left("motor/left", &callBackCmdMotorLeft );
+ros::Subscriber<std_msgs::Int32> sub_cmd_motor_right("motor/right", &callBackCmdMotorRight );
 
+//стандартная функция setup
 void setup() {
- nh.getHardware()->setBaud(115200);
- nh.initNode();
- nh.advertise(state_pub);
- nh.advertise(pubSensorsInfo);
- nh.subscribe(subCmdLeftMotor);
- nh.subscribe(subCmdRightMotor);
- 
- attachInterrupt(LEFT_ENCODER_INTERRUPT_NB,  callBackInterruptLeftEncoder, CHANGE);
- attachInterrupt(RIGHT_ENCODER_INTERRUPT_NB, callBackInterruptRightEncoder, CHANGE);
- 
- pinMode(LEFT_MOTOR_PWM_PIN, OUTPUT);
- pinMode(LEFT_MOTOR_DIR_PIN, OUTPUT);
- pinMode(RIGHT_MOTOR_PWM_PIN, OUTPUT);
- pinMode(RIGHT_MOTOR_DIR_PIN, OUTPUT);
+    nh.getHardware()->setBaud(115200);       // задаем скорость обмена информацией по интефейсу serial
+    nh.initNode();                           // инициализируем узел
+    nh.advertise(pub_encoders);              // инициализируем издателя сообщений с энкодеров (публикатора топика)
+    nh.advertise(pub_sensors_touch);         // инициализируем издателя сообщений с датчиков касания (публикатора топика)
+    nh.subscribe(sub_cmd_motor_left);        // инициализируем подписчика на управляющее воздействие для левого мотора
+    nh.subscribe(sub_cmd_motor_right);       // инициализируем подписчика на управляющее воздействие для правого мотора
 
- pinMode(SENSOR_LEFT_PIN, INPUT);
- pinMode(SENSOR_CENTER_PIN, INPUT);
- pinMode(SENSOR_RIGHT_PIN, INPUT);
+    // подписываемся на прерывания (для подсчета количества импульсов с энкодеров)
+    attachInterrupt(LEFT_ENCODER_INTERRUPT_NB,  callBackInterruptLeftEncoder, CHANGE);
+    attachInterrupt(RIGHT_ENCODER_INTERRUPT_NB, callBackInterruptRightEncoder, CHANGE);
 
- nh.advertise(state_pub);
- state_msg.header.frame_id =  "/encoders";
- state_msg.name_length = NUM_JOINTS;
- state_msg.velocity_length = NUM_JOINTS;
- state_msg.position_length = NUM_JOINTS;
- state_msg.effort_length = NUM_JOINTS;
- state_msg.name = state_names;
- state_msg.position = state_pos;
- state_msg.velocity = state_vel;
- state_msg.effort = state_eff;
+    // объявляем режимы работы для выводов микроконтроллера
+    pinMode(LEFT_MOTOR_PWM_PIN, OUTPUT);
+    pinMode(LEFT_MOTOR_DIR_PIN, OUTPUT);
+    pinMode(RIGHT_MOTOR_PWM_PIN, OUTPUT);
+    pinMode(RIGHT_MOTOR_DIR_PIN, OUTPUT);
+
+    pinMode(SENSOR_LEFT_PIN, INPUT);
+    pinMode(SENSOR_CENTER_PIN, INPUT);
+    pinMode(SENSOR_RIGHT_PIN, INPUT);
+
+    // инициализируем сообщение для энкодеров
+    encoders_msg.header.frame_id =  "/encoders";
+    encoders_msg.name_length = COUNT_MOTORS;
+    encoders_msg.velocity_length = COUNT_MOTORS;
+    encoders_msg.position_length = COUNT_MOTORS;
+    encoders_msg.effort_length = COUNT_MOTORS;
+    encoders_msg.name = encoders_names;
+    encoders_msg.position = encoders_pos;
+    encoders_msg.velocity = encoders_vel;
+    encoders_msg.effort = encoders_eff;
+
+    // инициализируем сообщение для датчиков касания
+    sensors_touch_msg.header.frame_id =  "/touch";
+    sensors_touch_msg.name_length = COUNT_TOUCH_SENSORS;
+    sensors_touch_msg.velocity_length = COUNT_TOUCH_SENSORS;
+    sensors_touch_msg.position_length = COUNT_TOUCH_SENSORS;
+    sensors_touch_msg.effort_length = COUNT_TOUCH_SENSORS;
+    sensors_touch_msg.name = sensors_touch_names;
+    sensors_touch_msg.position = sensors_touch_pos;
+    sensors_touch_msg.velocity = sensors_touch_vel;
+    sensors_touch_msg.effort = sensors_touch_eff;
 }
 
+//стандартная функция loop
 void loop(){
- 
- // Timer for encoder msg publication  
- if (  ( (millis()/1000.0) - timeOfLastPubEncoders ) > publicationPeriodEncoders) {
-
-  // publish messages
-  state_msg.header.stamp = nh.now();
-  state_pub.publish(&state_msg);
-  sensorsPubInfo();
-   
-  // Reset timer
-  // if timer expired several times
-  // => reset to the integer part of the number of timer periods from last reset of the timer
-  timeOfLastPubEncoders = timeOfLastPubEncoders + publicationPeriodEncoders*floor( (millis()/1000.0 - timeOfLastPubEncoders) / publicationPeriodEncoders); 
- }
- nh.spinOnce();   
-}
-
-void sensorsPubInfo(){
-  sensors.header.stamp = nh.now();
-  sensors.left = !digitalRead(SENSOR_LEFT_PIN);
-  sensors.center = !digitalRead(SENSOR_CENTER_PIN);
-  sensors.right = !digitalRead(SENSOR_RIGHT_PIN);
-  
-  pubSensorsInfo.publish(&sensors);
-  }
-
-// definition of callback functions
-void callBackCmdLeftMotor( const std_msgs::Int32& msg){
-   leftWheelRotationDir = cmd_velMotors(msg.data, LEFT);
-}
-
-void callBackCmdRightMotor( const std_msgs::Int32& msg){
-   rightWheelRotationDir = cmd_velMotors(msg.data, RIGHT);
-}
-
-int cmd_velMotors(int u, int direction){
-  // saturation
-  if (u>255)
-    u = 255;
-  if (u<-255)
-    u = -255;
-
-  // write rotation speed module
-  analogWrite(direction==LEFT ? LEFT_MOTOR_PWM_PIN : RIGHT_MOTOR_PWM_PIN, abs(u));
-
-  // write rotation speed direction
-  if (u>=0) {
-    digitalWrite(direction==LEFT ? LEFT_MOTOR_DIR_PIN : RIGHT_MOTOR_DIR_PIN, direction==LEFT ? HIGH : LOW);  // forward or stop
-    if (u==0){
-      return 0;  // stop
-    } else {
-      return 1;  // forward
+    // Останавливаем робота если не приходят сообщения с управляющим воздействием
+    if (millis() - time_last_msgs_cmd_vel > TIME_NO_MSG_MS) {
+        cmd_motors[LEFT] = 0;
+        cmd_motors[RIGHT] = 0;
     }
-  } else {
-    digitalWrite(direction==LEFT ? LEFT_MOTOR_DIR_PIN : RIGHT_MOTOR_DIR_PIN, direction==LEFT ? LOW : HIGH);  // backward
-    return -1;
-  }
+
+    // передаем управляющее воздействие на драйвер
+    cmd_velMotors(cmd_motors[LEFT], LEFT);
+    cmd_velMotors(cmd_motors[RIGHT], RIGHT);
+
+    // проверяем нужно ли публиковать данные энкодеров
+    if (millis() - time_last_pub_encoders > TIME_PUB_INFO_ENCODERS_MS) {
+        encoders_msg.header.stamp = nh.now();                           // заполняем время сообщения
+        pub_encoders.publish(&encoders_msg);                            // публикуем сообщение с значениями энкодеров
+
+        time_last_pub_encoders = millis();                              // фиксируем время последней публикации значений энкодеров
+    }
+
+    // проверяем нужно ли публиковать данные датчиков касания
+    if (millis() - time_last_pub_sensors_touch > TIME_PUB_INFO_TOUCH_SENSORS_MS) {
+        pubInfoSensorTouch();                                           // опрашиваем и публикуем состояния датчиков касания
+
+        time_last_pub_sensors_touch = millis();                         // фиксируем время последней публикации значений датчиков касания
+    }
+    nh.spinOnce();
 }
 
-void callBackInterruptLeftEncoder(){
-  double t = millis()/1000.0;
-  if (t>timeOfLastChangeLeftEncoder){
-    state_pos[0] = state_pos[0] + 1*leftWheelRotationDir;
-    timeOfLastChangeLeftEncoder = t;
-  } 
+// функция опроса датчиков касания и передачи данных в топик
+void pubInfoSensorTouch(){
+    sensors_touch_msg.header.stamp = nh.now();                         // заполняем поле времени в сообшении
+    sensors_touch_msg.position[0] = !digitalRead(SENSOR_LEFT_PIN);     // опрашиваем левый датчик касания и записываем в сообщение инверсию значения
+    sensors_touch_msg.position[1] = !digitalRead(SENSOR_CENTER_PIN);   // опрашиваем центральный датчик касания и записываем в сообщение инверсию значения
+    sensors_touch_msg.position[2] = !digitalRead(SENSOR_RIGHT_PIN);    // опрашиваем правый датчик касания и записываем в сообщение инверсию значения
+
+    pub_sensors_touch.publish(&sensors_touch_msg);                     // публикуем сообщение в топик
 }
 
-void callBackInterruptRightEncoder(){
-  double t = millis()/1000.0;
-  if (t>timeOfLastChangeRightEncoder){
-    state_pos[1] = state_pos[1] + 1*rightWheelRotationDir;
-    timeOfLastChangeRightEncoder = t;
-  } 
+// обработчик полученного сообщения с управляющим воздействием для левого колеса
+void callBackCmdMotorLeft( const std_msgs::Int32& msg){
+    cmd_motors[LEFT] = msg.data;                                       // заполняем массив полученным значением в сообщении
+    time_last_msgs_cmd_vel = millis();                                 // фиксируем время последнего управляющего воздействия
+}
+
+// обработчик полученного сообщения с управляющим воздействием для правого колеса
+void callBackCmdMotorRight( const std_msgs::Int32& msg){
+    cmd_motors[RIGHT] = msg.data;                                      // заполняем массив полученным значением в сообщении
+    time_last_msgs_cmd_vel = millis();                                 // фиксируем время последнего управляющего воздействия
+}
+
+// обработчик прерывания для левого колеса
+inline void callBackInterruptLeftEncoder() {
+    encoders_pos[LEFT] += getRotationDir(cmd_motors[LEFT]);            // получаем необходимое значение для суммирования с счетчиком  импульсов в зависимости от направления вращения мотора
+}
+
+// обработчик прерывания для правого колеса
+inline void callBackInterruptRightEncoder() {
+    encoders_pos[RIGHT] += getRotationDir(cmd_motors[RIGHT]);          // получаем необходимое значение для суммирования с счетчиком  импульсов в зависимости от направления вращения мотора
+}
+
+// определение направления вращения мотора по последнему управляющему воздействию
+float getRotationDir(int value) {
+    if (value >= 0) {
+        if (value == 0) {
+            return 0.0;     // стоп
+        }
+        else
+        {
+            return 1.0;     // вращение вперед
+        }
+    }
+    else
+    {
+        return -1.0;        // вращение назад
+    }
+}
+
+// управление мотором на определенной стороне робота (1 пин определяет направление, 2 пин ШИМ-сигнал)
+void cmd_velMotors(int value, int side) {
+    // избавляемся от переполнения ШИМ
+    if (value > MOTOR_VALUE_MAX)
+        value = MOTOR_VALUE_MAX;
+    if (value < -MOTOR_VALUE_MAX)
+        value = -MOTOR_VALUE_MAX;
+
+    // убираем значения ниже минимального значения при котором моторы могут вращаться
+    if (value < 0 && value >= -MOTOR_VALUE_MIN)
+        value = -MOTOR_VALUE_MIN;
+    if (value > 0 && value <= MOTOR_VALUE_MIN)
+        value = MOTOR_VALUE_MIN;
+
+    // передаем значение ШИМ-сигнала на мотор
+    analogWrite(side==LEFT ? LEFT_MOTOR_PWM_PIN : RIGHT_MOTOR_PWM_PIN, abs(value));
+
+    // передаем значение определяющее направление вращения мотора
+    if (value >= 0) {
+        // вращение вперед или стоп
+        digitalWrite(side==LEFT ? LEFT_MOTOR_DIR_PIN : RIGHT_MOTOR_DIR_PIN, side==LEFT ? HIGH : LOW);
+    } else {
+        // вращение назад
+        digitalWrite(side==LEFT ? LEFT_MOTOR_DIR_PIN : RIGHT_MOTOR_DIR_PIN, side==LEFT ? LOW : HIGH);
+    }
 }
