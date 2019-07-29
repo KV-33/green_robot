@@ -1,0 +1,13 @@
+Сборка пакета gmapping
+
+(docker) $ apt update
+(docker) $ rosdep update
+(docker) $ mkdir -p /ros_ws/src
+(docker) $ cd /ros_ws
+(docker) $ git clone https://github.com/ros-perception/openslam_gmapping src/openslam_gmapping
+(docker) $ git clone https://github.com/ros-perception/slam_gmapping src/slam_gmapping
+(docker) $ rosdep install --from-paths src/ -i
+(docker) $ catkin_make -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+
+Взято с https://answers.ros.org/question/300480/building-open_gmapping-from-source-on-melodicubuntu-1804/
