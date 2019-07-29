@@ -29,7 +29,7 @@ double getIntervalCount(double now_count, double old_count){
 
 void encoderCallback(const sensor_msgs::JointState& msg)
 {
-    if(msg.name.size() == 2 && msg.name[0].compare("left_wheel") == 0 && msg.name[1].compare("right_wheel") == 0) {
+    if(msg.name.size() == 2 && msg.name[0].compare("wheel_left") == 0 && msg.name[1].compare("wheel_right") == 0) {
         encoder_count_left = getIntervalCount(msg.position[0], encoder_prev_left);
         encoder_count_right = getIntervalCount(msg.position[1], encoder_prev_right);
         encoder_prev_left = msg.position[0];
@@ -41,6 +41,10 @@ void encoderCallback(const sensor_msgs::JointState& msg)
 
 double impulse2metersInSeconds(double x) {
     return ((x / encoder_resolution) * M_PI * wheel_diameter)/time_interval;
+}
+
+double impulse2radInSeconds(float x) {
+    return ((x / encoder_resolution) * 2.0 * M_PI)/time_interval;
 }
 
 int main(int argc, char **argv)
@@ -60,7 +64,6 @@ int main(int argc, char **argv)
     geometry_msgs::Twist wheel_msg_left;
     geometry_msgs::Twist wheel_msg_right;
 
-
     ros::Subscriber encoder_sub = nh.subscribe(topic_wheel_encoder, 50, encoderCallback);
     ros::Publisher speed_pub_left = nh.advertise<geometry_msgs::Twist>(topic_wheel_speed+"/left", 50);
     ros::Publisher speed_pub_right = nh.advertise<geometry_msgs::Twist>(topic_wheel_speed+"/right", 50);
@@ -69,8 +72,8 @@ int main(int argc, char **argv)
     while (ros::ok())
     {
         if(time_interval > 0.0){
-            wheel_msg_left.linear.x = impulse2metersInSeconds(encoder_count_left);
-            wheel_msg_right.linear.x = impulse2metersInSeconds(encoder_count_right);
+            wheel_msg_left.angular.x = impulse2radInSeconds(encoder_count_left);
+            wheel_msg_right.angular.x = impulse2radInSeconds(encoder_count_right);
         }
         speed_pub_left.publish(wheel_msg_left);
         speed_pub_right.publish(wheel_msg_right);
