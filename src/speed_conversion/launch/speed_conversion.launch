@@ -5,8 +5,8 @@
         <param name="topic_wheel_encoder" value="sensors/encoders"/>
         <param name="topic_wheel_speed" value="sensors/wheel_speed"/>
 
-        <param name="wheel_diameter" value="0.07"/>
-        <param name="encoder_resolution" value="40.0"/>
+        <param name="wheel_diameter" value="0.144"/>
+        <param name="encoder_resolution" value="1536.0"/>
     </node>
 
     <group if="$(eval arg('debug') == 1)">

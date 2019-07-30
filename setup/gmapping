@@ -2,8 +2,8 @@
 
 $ apt update
 $ rosdep update
-$ mkdir -p /ros_ws/src
-$ cd /ros_ws
+$ mkdir -p ros_ws/src
+$ cd ros_ws
 $ git clone https://github.com/ros-perception/openslam_gmapping src/openslam_gmapping
 $ git clone https://github.com/ros-perception/slam_gmapping src/slam_gmapping
 $ rosdep install --from-paths src/ -i
