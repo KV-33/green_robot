@@ -1,0 +1,3 @@
+<launch>
+   <include file="$(find hls_lfcd_lds_driver)/launch/hlds_laser_segment.launch" />
+</launch>
