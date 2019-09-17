@@ -3,8 +3,8 @@
 #include <nav_msgs/Odometry.h>
 #include "sensor_msgs/JointState.h"
 
-#define ENCODER_RESOLUTION        40.0   // количество импульсов на оборот колеса   //12*128
-#define WHEEL_DIAMETER            0.07    // диаметр колеса в метрах
+#define ENCODER_RESOLUTION        1536.0   // количество импульсов на оборот колеса   //12*128
+#define WHEEL_DIAMETER            0.144    // диаметр колеса в метрах
 #define WHEEL_BASE                0.13      // база колесная
 
 double encoder_resolution;
