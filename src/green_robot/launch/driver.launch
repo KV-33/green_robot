@@ -1,7 +1,7 @@
 <launch>
     <!--Запуск соединения с микроконтроллером для управления-->
     <node name="green_robot" pkg="rosserial_python" respawn="true" ns="green_robot" type="serial_node.py">
-        <param name="port" value="/dev/ttyACM0"/>
+        <param name="port" value="/dev/ttyUSB0"/>
         <param name="baud" value="115200"/>
     </node>
 </launch>
