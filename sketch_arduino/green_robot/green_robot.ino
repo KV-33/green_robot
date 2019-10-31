@@ -26,7 +26,7 @@
 #define TIME_NO_MSG_MS                  2000    // время ожидания восстановления связи при отсутствии сообщений с управляющим воздействием (далее стоп моторы)
 
 #define MOTOR_VALUE_MAX                 255     // максимальное значение подаваемое на драйвер
-#define MOTOR_VALUE_MIN                 80      // минимальное значение подаваемое на драйвер
+#define MOTOR_VALUE_MIN                 20      // минимальное значение подаваемое на драйвер
 
 
 // стороны робота
@@ -48,24 +48,24 @@ ros::NodeHandle nh;
 
 // объявление массивов для хранения и публикации данных с энкодеров в топик
 char *encoders_names[COUNT_MOTORS] = {"wheel_left", "wheel_right"};
-float encoders_pos[COUNT_MOTORS] = {0, 0};
-float encoders_vel[COUNT_MOTORS] = {0, 0};
-float encoders_eff[COUNT_MOTORS] = {0, 0};
+float encoders_pos[COUNT_MOTORS] = {0.0, 0.0};
+float encoders_vel[COUNT_MOTORS] = {0.0, 0.0};
+float encoders_eff[COUNT_MOTORS] = {0.0, 0.0};
 
 // объявление массивов для хранения и публикации данных с датчиков касания в топик
 char *sensors_touch_names[COUNT_TOUCH_SENSORS] = {"sensor_left", "sensor_center", "sensor_right"};
-float sensors_touch_pos[COUNT_TOUCH_SENSORS] = {0, 0, 0};
-float sensors_touch_vel[COUNT_TOUCH_SENSORS] = {0, 0, 0};
-float sensors_touch_eff[COUNT_TOUCH_SENSORS] = {0, 0, 0};
+float sensors_touch_pos[COUNT_TOUCH_SENSORS] = {0.0, 0.0, 0.0};
+float sensors_touch_vel[COUNT_TOUCH_SENSORS] = {0.0, 0.0, 0.0};
+float sensors_touch_eff[COUNT_TOUCH_SENSORS] = {0.0, 0.0, 0.0};
 
-int cmd_motors[COUNT_MOTORS] = {0.0, 0.0};                             // управляющие воздействия на моторы
+float cmd_motors[COUNT_MOTORS] = {0.0, 0.0};                             // управляющие воздействия на моторы
 
 // объявление переменных для учета последних действий
 unsigned long time_last_pub_encoders = 0;                              // последнее время публикации значений энкодеров в топик
 unsigned long time_last_pub_sensors_touch = 0;                         // последнее время публикации значений датчиков касания в топик
 unsigned long time_last_msgs_cmd_vel = 0;                              // последнее время получения сообщения с управляющим воздействием
 
-// обявление сообщений для энкодеров и датчиков касания
+// обявление типов сообщений для энкодеров и датчиков касания
 sensor_msgs::JointState encoders_msg;
 sensor_msgs::JointState sensors_touch_msg;
 
@@ -216,6 +216,7 @@ void cmd_velMotors(int value, int side) {
         value = MOTOR_VALUE_MIN;
 
     // передаем значение ШИМ-сигнала на мотор
+
     analogWrite(side==LEFT ? LEFT_MOTOR_PWM_PIN : RIGHT_MOTOR_PWM_PIN, abs(value));
 
     // передаем значение определяющее направление вращения мотора
