@@ -66,7 +66,7 @@ unsigned long time_last_pub_sensors_touch = 0;                         // пос
 unsigned long time_last_msgs_cmd_vel = 0;                              // последнее время получения сообщения с управляющим воздействием
 
 // обявление типов сообщений для энкодеров и датчиков касания
-std_msgs::Int32 encoders_msg;
+sensor_msgs::JointState encoders_msg;
 sensor_msgs::JointState sensors_touch_msg;
 
 // объявление издателей топиков с данными от энкодеров и датчиков касания
@@ -101,7 +101,7 @@ void setup() {
     pinMode(SENSOR_RIGHT_PIN, INPUT);
 
     // инициализируем сообщение для энкодеров
-  /*  encoders_msg.header.frame_id =  "/encoders";
+    encoders_msg.header.frame_id =  "/encoders";
     encoders_msg.name_length = COUNT_MOTORS;
     encoders_msg.velocity_length = COUNT_MOTORS;
     encoders_msg.position_length = COUNT_MOTORS;
@@ -110,7 +110,7 @@ void setup() {
     encoders_msg.position = encoders_pos;
     encoders_msg.velocity = encoders_vel;
     encoders_msg.effort = encoders_eff;
-    */
+
     // инициализируем сообщение для датчиков касания
     sensors_touch_msg.header.frame_id =  "/touch";
     sensors_touch_msg.name_length = COUNT_TOUCH_SENSORS;
@@ -174,25 +174,8 @@ void callBackCmdMotorRight( const std_msgs::Int32& msg){
     time_last_msgs_cmd_vel = millis();                                 // фиксируем время последнего управляющего воздействия
 }
 
-void callBackInterruptLeftEncoder(){
-  double t = millis()/1000.0;
-  if (t>timeOfLastChangeLeftEncoder){
-    countLeftEncoder.data = countLeftEncoder.data + 1*leftWheelRotationDir;
-    timeOfLastChangeLeftEncoder = t;
-  }
-}
-
-void callBackInterruptRightEncoder(){
-  double t = millis()/1000.0;
-  if (t>timeOfLastChangeRightEncoder){
-    countRightEncoder.data = countRightEncoder.data + 1*rightWheelRotationDir;
-    timeOfLastChangeRightEncoder = t;
-  }
-}
-
-
 // обработчик прерывания для левого колеса
-/*inline void callBackInterruptLeftEncoder() {
+inline void callBackInterruptLeftEncoder() {
     encoders_pos[LEFT] += getRotationDir(cmd_motors[LEFT]);            // получаем необходимое значение для суммирования с счетчиком  импульсов в зависимости от направления вращения мотора
 }
 
@@ -200,7 +183,7 @@ void callBackInterruptRightEncoder(){
 inline void callBackInterruptRightEncoder() {
     encoders_pos[RIGHT] += getRotationDir(cmd_motors[RIGHT]);          // получаем необходимое значение для суммирования с счетчиком  импульсов в зависимости от направления вращения мотора
 }
-*/
+
 // определение направления вращения мотора по последнему управляющему воздействию
 float getRotationDir(int value) {
     if (value >= 0) {

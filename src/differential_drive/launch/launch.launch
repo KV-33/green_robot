@@ -1,0 +1,41 @@
+<launch>
+
+  <include file="$(find green_robot)/launch/driver.launch" />
+
+  <rosparam param="ticks_meter">70</rosparam>
+
+  <node pkg="differential_drive" type="pid_velocity.py" name="lpid_velocity">
+      <remap from="wheel" to="left_wheel"/>
+      <remap from="motor_cmd" to="motor/left"/>
+      <remap from="wheel_vtarget" to="lwheel_vtarget"/>
+      <remap from="wheel_vel" to="lwheel_vel"/>
+      <rosparam param="Kp">1</rosparam>
+      <rosparam param="Ki">0</rosparam>
+      <rosparam param="Kd">0</rosparam>
+      <rosparam param="out_min">-255</rosparam>
+      <rosparam param="out_max">255</rosparam>
+      <rosparam param="rate">30</rosparam>
+      <rosparam param="timeout_ticks">4</rosparam>
+      <rosparam param="rolling_pts">5</rosparam>
+  </node>
+  <node pkg="differential_drive" type="pid_velocity.py" name="rpid_velocity">
+      <remap from="wheel" to="right_wheel"/>
+      <remap from="motor_cmd" to="motor/right"/>
+      <remap from="wheel_vtarget" to="rwheel_vtarget"/>
+      <remap from="wheel_vel" to="rwheel_vel"/>
+      <rosparam param="Kp">1</rosparam>
+      <rosparam param="Ki">0</rosparam>
+      <rosparam param="Kd">0</rosparam>
+      <rosparam param="out_min">-255</rosparam>
+      <rosparam param="out_max">255</rosparam>
+      <rosparam param="rate">30</rosparam>
+      <rosparam param="timeout_ticks">4</rosparam>
+      <rosparam param="rolling_pts">5</rosparam>
+  </node>
+
+  <!--<node pkg="differential_drive" type="virtual_joystick.py" name="virtual_joystick" output="screen"/>-->
+  <node pkg="differential_drive" type="twist_to_motors.py" name="twist_to_motors" ns="green_robot" output="screen">
+    <rosparam param="base_width">0.285</rosparam>
+  </node>
+
+</launch>
